@@ -26,7 +26,7 @@ import {
   isAfter
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { businessHours, bufferDays } from '../../data/surgeries';
+import { businessHours } from '../../data/surgeries';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import './CalendarPicker.css';
