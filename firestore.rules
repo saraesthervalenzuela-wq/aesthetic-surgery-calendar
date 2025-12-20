@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // TODO: Implement proper admin check
+      // For now, you can add admin emails here or use custom claims
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isValidEmail(email) {
+      return email.matches('[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}');
+    }
+
+    function isValidPhone(phone) {
+      return phone.size() >= 10;
+    }
+
+    function isFutureDate(date) {
+      return date > request.time;
+    }
+
+    // ============================================
+    // APPOINTMENTS COLLECTION
+    // ============================================
+    match /appointments/{appointmentId} {
+
+      // Anyone can create an appointment (public booking)
+      allow create: if
+        // Validate required fields
+        request.resource.data.patientName is string &&
+        request.resource.data.patientName.size() >= 3 &&
+        request.resource.data.patientEmail is string &&
+        isValidEmail(request.resource.data.patientEmail) &&
+        request.resource.data.patientPhone is string &&
+        isValidPhone(request.resource.data.patientPhone) &&
+        request.resource.data.surgeryId is string &&
+        request.resource.data.surgeryName is string &&
+        request.resource.data.duration is number &&
+        request.resource.data.duration > 0 &&
+        request.resource.data.date is timestamp &&
+        isFutureDate(request.resource.data.date) &&
+        request.resource.data.status is string &&
+        request.resource.data.status in ['confirmed', 'pending'] &&
+        request.resource.data.createdAt is timestamp;
+
+      // Only admins can read all appointments
+      allow read: if isAdmin();
+
+      // Admins can update and delete
+      allow update, delete: if isAdmin();
+    }
+
+    // ============================================
+    // BLOCKED DATES COLLECTION
+    // ============================================
+    match /blockedDates/{dateId} {
+
+      // Anyone can read blocked dates (needed for calendar)
+      allow read: if true;
+
+      // Only admins can create, update, or delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ============================================
+    // SETTINGS COLLECTION
+    // ============================================
+    match /settings/{settingId} {
+
+      // Anyone can read settings (needed for business hours, etc.)
+      allow read: if true;
+
+      // Only admins can update settings
+      allow update: if isAdmin();
+
+      // Prevent deletion of settings
+      allow delete: if false;
+    }
+
+    // ============================================
+    // SURGERY PROCEDURES COLLECTION
+    // ============================================
+    match /surgeryProcedures/{procedureId} {
+
+      // Anyone can read procedures (needed for booking)
+      allow read: if true;
+
+      // Only admins can create, update, or delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ============================================
+    // NOTIFICATIONS COLLECTION (Optional)
+    // ============================================
+    match /notifications/{notificationId} {
+
+      // Only admins can read notifications
+      allow read: if isAdmin();
+
+      // System can create notifications (via Cloud Functions)
+      allow create: if true;
+
+      // Admins can update
+      allow update: if isAdmin();
+
+      // No one can delete (keep audit trail)
+      allow delete: if false;
+    }
+
+    // ============================================
+    // ADMIN USERS COLLECTION (Optional - for future)
+    // ============================================
+    match /adminUsers/{userId} {
+
+      // Only admins can read
+      allow read: if isAdmin();
+
+      // Only admins can manage other admins
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Block all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,232 @@
+.surgery-selector {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.selector-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.selector-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.selector-title svg {
+  color: var(--accent);
+}
+
+.selector-title h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.selector-subtitle {
+  color: var(--gray-500);
+  font-size: 0.95rem;
+}
+
+.selector-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--gray-100);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  transition: var(--transition-base);
+}
+
+.search-box:focus-within {
+  border-color: var(--accent);
+  background: var(--white);
+  box-shadow: var(--shadow-gold);
+}
+
+.search-box svg {
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  color: var(--gray-800);
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: var(--gray-400);
+}
+
+.category-filters {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.category-btn {
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  transition: var(--transition-base);
+}
+
+.category-btn:hover {
+  background: var(--gray-200);
+}
+
+.category-btn.active {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.surgeries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.surgery-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-base);
+  border: 2px solid transparent;
+}
+
+.surgery-card:hover {
+  background: var(--white);
+  border-color: var(--accent-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.surgery-card.selected {
+  background: var(--white);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-gold);
+}
+
+.surgery-icon {
+  width: 50px;
+  height: 50px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.surgery-card.selected .surgery-icon {
+  background: var(--gradient-gold);
+}
+
+.surgery-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.surgery-info h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: var(--space-xs);
+}
+
+.surgery-info p {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-bottom: var(--space-sm);
+  line-height: 1.4;
+}
+
+.surgery-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.surgery-duration {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.surgery-category {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.surgery-select-indicator {
+  color: var(--gray-300);
+  transition: var(--transition-base);
+}
+
+.surgery-card:hover .surgery-select-indicator,
+.surgery-card.selected .surgery-select-indicator {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+
+.no-results {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--gray-500);
+}
+
+@media (max-width: 768px) {
+  .surgery-selector {
+    padding: var(--space-lg);
+  }
+  
+  .selector-title h2 {
+    font-size: 1.4rem;
+  }
+  
+  .surgeries-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .surgery-card {
+    padding: var(--space-md);
+  }
+}
