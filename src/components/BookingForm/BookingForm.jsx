@@ -9,7 +9,7 @@ import { formatDuration } from '../../data/surgeries';
 import emailjs from '@emailjs/browser';
 import './BookingForm.css';
 
-const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
+const BookingForm = ({ procedures, date, time, onSuccess, onReset }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,6 +18,9 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+
+  // Calculate total duration
+  const totalDuration = procedures.reduce((sum, proc) => sum + proc.duration, 0);
 
   const validateForm = () => {
     const newErrors = {};
@@ -59,13 +62,16 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
     const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'YOUR_PUBLIC_KEY';
 
     try {
+      const proceduresText = appointmentData.procedures.map(p => p.name).join(', ');
+
       await emailjs.send(serviceId, templateId, {
         to_name: appointmentData.patientName,
         to_email: appointmentData.patientEmail,
-        surgery_name: appointmentData.surgeryName,
+        procedures: proceduresText,
+        procedure_count: appointmentData.procedureCount,
         appointment_date: format(appointmentData.date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es }),
         appointment_time: format(appointmentData.date, 'h:mm a'),
-        duration: formatDuration(appointmentData.duration)
+        duration: formatDuration(appointmentData.totalDuration)
       }, publicKey);
     } catch (error) {
       console.error('Error sending email:', error);
@@ -74,7 +80,7 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -82,21 +88,27 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
 
     try {
       const appointmentDate = setMinutes(setHours(new Date(date), time.hour), time.minute);
-      
+
       const appointmentData = {
         patientName: formData.name.trim(),
         patientEmail: formData.email.trim().toLowerCase(),
         patientPhone: formData.phone.trim(),
-        surgeryId: surgery.id,
-        surgeryName: surgery.name,
-        duration: surgery.duration,
+        procedureCount: procedures.length,
+        procedures: procedures.map(proc => ({
+          id: proc.id,
+          name: proc.name,
+          duration: proc.duration,
+          category: proc.category,
+          icon: proc.icon
+        })),
+        totalDuration: totalDuration,
         date: Timestamp.fromDate(appointmentDate),
         status: 'confirmed',
         createdAt: Timestamp.now()
       };
 
       await addDoc(collection(db, 'appointments'), appointmentData);
-      
+
       // Send confirmation email
       await sendConfirmationEmail({
         ...appointmentData,
@@ -104,7 +116,7 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
       });
 
       setSubmitStatus('success');
-      
+
       setTimeout(() => {
         onSuccess && onSuccess();
       }, 3000);
@@ -119,7 +131,7 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
 
   if (submitStatus === 'success') {
     return (
-      <motion.div 
+      <motion.div
         className="booking-success"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -131,8 +143,8 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
         <p>Hemos enviado los detalles a tu correo electrónico</p>
         <div className="success-details">
           <div className="detail-item">
-            <span className="label">Procedimiento:</span>
-            <span className="value">{surgery.name}</span>
+            <span className="label">Procedimientos:</span>
+            <span className="value">{procedures.map(p => p.name).join(', ')}</span>
           </div>
           <div className="detail-item">
             <span className="label">Fecha:</span>
@@ -141,6 +153,10 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
           <div className="detail-item">
             <span className="label">Hora:</span>
             <span className="value">{format(setMinutes(setHours(new Date(), time.hour), time.minute), 'h:mm a')}</span>
+          </div>
+          <div className="detail-item">
+            <span className="label">Duración Total:</span>
+            <span className="value">{formatDuration(totalDuration)}</span>
           </div>
         </div>
         <button className="new-appointment-btn" onClick={onReset}>
@@ -162,11 +178,17 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
       </div>
 
       <div className="appointment-summary">
-        <div className="summary-item">
-          <span className="summary-icon">{surgery.icon}</span>
+        <div className="summary-item full-width">
+          <span className="summary-icon">💉</span>
           <div className="summary-details">
-            <span className="summary-label">Procedimiento</span>
-            <span className="summary-value">{surgery.name}</span>
+            <span className="summary-label">Procedimientos ({procedures.length})</span>
+            <div className="procedures-list">
+              {procedures.map((proc, idx) => (
+                <span key={proc.id} className="procedure-tag">
+                  {proc.icon} {proc.name}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
         <div className="summary-item">
@@ -190,8 +212,8 @@ const BookingForm = ({ surgery, date, time, onSuccess, onReset }) => {
         <div className="summary-item">
           <span className="summary-icon">⏱️</span>
           <div className="summary-details">
-            <span className="summary-label">Duración</span>
-            <span className="summary-value">{formatDuration(surgery.duration)}</span>
+            <span className="summary-label">Duración Total</span>
+            <span className="summary-value">{formatDuration(totalDuration)}</span>
           </div>
         </div>
       </div>

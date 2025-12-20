@@ -5,6 +5,79 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Selection Counter */
+.selection-counter {
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  border-left: 4px solid var(--primary);
+  transition: var(--transition-base);
+}
+
+.selection-counter.complete {
+  background: linear-gradient(135deg, rgba(78, 204, 163, 0.1) 0%, rgba(78, 204, 163, 0.05) 100%);
+  border-left-color: var(--success);
+}
+
+.counter-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.counter-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  font-family: var(--font-display);
+}
+
+.counter-numbers .current {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.selection-counter.complete .counter-numbers .current {
+  color: var(--success);
+}
+
+.counter-numbers .divider {
+  font-size: 1.5rem;
+  color: var(--gray-400);
+  margin: 0 var(--space-xs);
+}
+
+.counter-numbers .total {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.counter-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 500;
+}
+
+.complete-text {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--success);
+}
+
+.pending-text {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--primary);
+}
+
 .selector-header {
   text-align: center;
   margin-bottom: var(--space-xl);
@@ -203,8 +276,130 @@
 
 .surgery-card:hover .surgery-select-indicator,
 .surgery-card.selected .surgery-select-indicator {
+  color: var(--white);
+  background: var(--white);
+  border-radius: 50%;
+  padding: var(--space-xs);
+}
+
+.surgery-card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Selected Procedures List */
+.selected-procedures {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary);
+}
+
+.selected-procedures h3 {
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--primary);
-  transform: translateX(4px);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.selected-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.selected-number {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.selected-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.selected-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+.selected-duration {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.remove-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--error);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition-base);
+  flex-shrink: 0;
+}
+
+.remove-btn:hover {
+  background: #ff5252;
+  transform: scale(1.1);
+}
+
+.total-duration {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--primary);
+}
+
+.total-duration strong {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.total-duration span {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-display);
 }
 
 .no-results {
@@ -217,16 +412,34 @@
   .surgery-selector {
     padding: var(--space-lg);
   }
-  
+
   .selector-title h2 {
     font-size: 1.4rem;
   }
-  
+
+  .counter-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .counter-numbers .current {
+    font-size: 2rem;
+  }
+
   .surgeries-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .surgery-card {
     padding: var(--space-md);
+  }
+
+  .selected-item {
+    flex-wrap: wrap;
+  }
+
+  .selected-name {
+    flex-basis: 100%;
+    order: 2;
   }
 }

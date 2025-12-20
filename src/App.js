@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Settings } from 'lucide-react';
 import Header from './components/Header/Header';
 import StepIndicator from './components/StepIndicator/StepIndicator';
+import ProcedureCountSelector from './components/ProcedureCountSelector/ProcedureCountSelector';
 import SurgerySelector from './components/SurgerySelector/SurgerySelector';
 import CalendarPicker from './components/CalendarPicker/CalendarPicker';
 import BookingForm from './components/BookingForm/BookingForm';
@@ -12,14 +13,19 @@ import './App.css';
 
 function App() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedSurgery, setSelectedSurgery] = useState(null);
+  const [procedureCount, setProcedureCount] = useState(null);
+  const [selectedProcedures, setSelectedProcedures] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [showAdmin, setShowAdmin] = useState(false);
 
-  const handleSurgerySelect = useCallback((surgery) => {
-    setSelectedSurgery(surgery);
+  const handleCountSelect = useCallback((count) => {
+    setProcedureCount(count);
     setCurrentStep(2);
+  }, []);
+
+  const handleProceduresSelect = useCallback((procedures) => {
+    setSelectedProcedures(procedures);
   }, []);
 
   const handleDateSelect = useCallback((date) => {
@@ -29,26 +35,29 @@ function App() {
 
   const handleTimeSelect = useCallback((time) => {
     setSelectedTime(time);
-    setCurrentStep(3);
+    setCurrentStep(4);
   }, []);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
+      if (currentStep === 4) {
+        setSelectedTime(null);
+      }
       if (currentStep === 3) {
+        setSelectedDate(null);
         setSelectedTime(null);
       }
       if (currentStep === 2) {
-        setSelectedSurgery(null);
-        setSelectedDate(null);
-        setSelectedTime(null);
+        setSelectedProcedures([]);
       }
     }
   }, [currentStep]);
 
   const handleReset = useCallback(() => {
     setCurrentStep(1);
-    setSelectedSurgery(null);
+    setProcedureCount(null);
+    setSelectedProcedures([]);
     setSelectedDate(null);
     setSelectedTime(null);
   }, []);
@@ -56,6 +65,8 @@ function App() {
   const handleSuccess = useCallback(() => {
     // Optional: Could show a thank you message or redirect
   }, []);
+
+  const canProceedFromStep2 = selectedProcedures.length === procedureCount;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -68,9 +79,9 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <SurgerySelector 
-              selectedSurgery={selectedSurgery}
-              onSelect={handleSurgerySelect}
+            <ProcedureCountSelector
+              selectedCount={procedureCount}
+              onSelect={handleCountSelect}
             />
           </motion.div>
         );
@@ -83,12 +94,10 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <CalendarPicker
-              selectedSurgery={selectedSurgery}
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onDateSelect={handleDateSelect}
-              onTimeSelect={handleTimeSelect}
+            <SurgerySelector
+              requiredCount={procedureCount}
+              selectedProcedures={selectedProcedures}
+              onSelect={handleProceduresSelect}
             />
           </motion.div>
         );
@@ -101,8 +110,26 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
+            <CalendarPicker
+              selectedProcedures={selectedProcedures}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onDateSelect={handleDateSelect}
+              onTimeSelect={handleTimeSelect}
+            />
+          </motion.div>
+        );
+      case 4:
+        return (
+          <motion.div
+            key="step-4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
             <BookingForm
-              surgery={selectedSurgery}
+              procedures={selectedProcedures}
               date={selectedDate}
               time={selectedTime}
               onSuccess={handleSuccess}
@@ -123,17 +150,27 @@ function App() {
         <StepIndicator currentStep={currentStep} />
         
         {/* Navigation Buttons */}
-        {currentStep > 1 && currentStep < 4 && (
+        {currentStep > 1 && currentStep < 5 && (
           <div className="navigation-bar">
             <button className="nav-button back" onClick={handleBack}>
               <ArrowLeft size={18} />
               <span>Atrás</span>
             </button>
-            
-            {currentStep === 2 && selectedTime && (
-              <button 
+
+            {currentStep === 2 && canProceedFromStep2 && (
+              <button
                 className="nav-button next"
                 onClick={() => setCurrentStep(3)}
+              >
+                <span>Continuar</span>
+                <ArrowRight size={18} />
+              </button>
+            )}
+
+            {currentStep === 3 && selectedTime && (
+              <button
+                className="nav-button next"
+                onClick={() => setCurrentStep(4)}
               >
                 <span>Continuar</span>
                 <ArrowRight size={18} />

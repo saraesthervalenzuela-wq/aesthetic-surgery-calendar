@@ -32,6 +32,30 @@
   margin-bottom: var(--space-xl);
 }
 
+.summary-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.procedures-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.procedure-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--white);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
 .summary-item {
   display: flex;
   align-items: center;

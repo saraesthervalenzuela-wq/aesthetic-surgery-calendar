@@ -31,12 +31,15 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import './CalendarPicker.css';
 
-const CalendarPicker = ({ selectedSurgery, selectedDate, selectedTime, onDateSelect, onTimeSelect }) => {
+const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDateSelect, onTimeSelect }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const minDate = addWeeks(new Date(), 1); // 1 week buffer
+
+  // Calculate total duration of all selected procedures
+  const totalDuration = selectedProcedures.reduce((sum, proc) => sum + proc.duration, 0);
 
   // Generate time slots based on business hours
   const generateTimeSlots = () => {
@@ -89,10 +92,10 @@ const CalendarPicker = ({ selectedSurgery, selectedDate, selectedTime, onDateSel
 
   // Check if a time slot is available
   const isSlotAvailable = (hour, minute) => {
-    if (!selectedSurgery || !selectedDate) return true;
+    if (!selectedProcedures.length || !selectedDate) return true;
 
     const slotStart = setMinutes(setHours(new Date(selectedDate), hour), minute);
-    const slotEnd = new Date(slotStart.getTime() + selectedSurgery.duration * 60000);
+    const slotEnd = new Date(slotStart.getTime() + totalDuration * 60000);
 
     // Check if slot ends after business hours
     const businessEnd = setMinutes(setHours(new Date(selectedDate), businessHours.end), 0);
@@ -101,7 +104,7 @@ const CalendarPicker = ({ selectedSurgery, selectedDate, selectedTime, onDateSel
     // Check against booked appointments
     for (const appointment of bookedSlots) {
       const appointmentStart = new Date(appointment.date);
-      const appointmentEnd = new Date(appointmentStart.getTime() + appointment.duration * 60000);
+      const appointmentEnd = new Date(appointmentStart.getTime() + appointment.totalDuration * 60000);
 
       // Check for overlap
       if (slotStart < appointmentEnd && slotEnd > appointmentStart) {
