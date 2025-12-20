@@ -19,7 +19,7 @@
 }
 
 .section-header svg {
-  color: var(--accent);
+  color: var(--primary);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -73,7 +73,7 @@
 }
 
 .nav-btn:hover {
-  background: var(--accent);
+  background: var(--primary);
   color: var(--white);
 }
 
@@ -138,10 +138,10 @@
 }
 
 .calendar-cell.selected {
-  background: var(--gradient-gold);
-  color: var(--primary);
+  background: var(--gradient-primary);
+  color: var(--white);
   font-weight: 600;
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-accent);
 }
 
 /* Time Slots Styles */
@@ -181,7 +181,7 @@
 }
 
 .period-header svg {
-  color: var(--accent);
+  color: var(--primary);
 }
 
 .time-slots {
@@ -202,15 +202,15 @@
 }
 
 .time-slot:hover:not(.unavailable) {
-  border-color: var(--accent);
+  border-color: var(--primary);
   background: var(--accent-light);
 }
 
 .time-slot.selected {
-  background: var(--gradient-gold);
-  color: var(--primary);
+  background: var(--gradient-primary);
+  color: var(--white);
   font-weight: 600;
-  border-color: var(--accent);
+  border-color: var(--primary);
 }
 
 .time-slot.unavailable {

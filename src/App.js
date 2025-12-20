@@ -167,7 +167,7 @@ function App() {
       {/* Footer */}
       <footer className="app-footer">
         <p>
-          © {new Date().getFullYear()} Aesthetic Surgery Center. Todos los derechos reservados.
+          © {new Date().getFullYear()} Ciplastic - Cirugía Plástica y Estética. Todos los derechos reservados.
         </p>
       </footer>
     </div>

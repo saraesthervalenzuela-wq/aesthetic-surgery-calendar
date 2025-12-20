@@ -76,7 +76,7 @@
 }
 
 .form-group label svg {
-  color: var(--accent);
+  color: var(--primary);
 }
 
 .form-group input {
@@ -91,8 +91,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(201, 169, 98, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 61, 150, 0.15);
 }
 
 .form-group input::placeholder {
@@ -129,8 +129,8 @@
 .submit-btn {
   width: 100%;
   padding: var(--space-lg);
-  background: var(--gradient-gold);
-  color: var(--primary);
+  background: var(--gradient-primary);
+  color: var(--white);
   font-size: 1rem;
   font-weight: 600;
   border-radius: var(--radius-lg);
@@ -139,12 +139,12 @@
   justify-content: center;
   gap: var(--space-sm);
   transition: var(--transition-base);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-accent);
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(201, 169, 98, 0.4);
+  box-shadow: 0 6px 25px rgba(147, 221, 230, 0.45);
 }
 
 .submit-btn:disabled {
