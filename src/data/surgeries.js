@@ -119,6 +119,55 @@ export const surgeries = [
     category: 'Facial',
     icon: '✨',
     description: 'Reducción de mejillas para rostro más definido'
+  },
+  // Procedimientos Bariátricos
+  {
+    id: 'gastric-sleeve',
+    name: 'Manga Gástrica',
+    duration: 120,
+    category: 'Bariatría',
+    icon: '🏥',
+    description: 'Reducción del estómago para pérdida de peso'
+  },
+  {
+    id: 'gastric-bypass',
+    name: 'Bypass Gástrico',
+    duration: 180,
+    category: 'Bariatría',
+    icon: '⚕️',
+    description: 'Cirugía de derivación gástrica para obesidad'
+  },
+  {
+    id: 'gastric-balloon',
+    name: 'Balón Gástrico',
+    duration: 30,
+    category: 'Bariatría',
+    icon: '🎈',
+    description: 'Colocación de balón intragástrico temporal'
+  },
+  {
+    id: 'gastric-band',
+    name: 'Banda Gástrica',
+    duration: 90,
+    category: 'Bariatría',
+    icon: '🔗',
+    description: 'Colocación de banda ajustable en el estómago'
+  },
+  {
+    id: 'duodenal-switch',
+    name: 'Derivación Biliopancreática',
+    duration: 240,
+    category: 'Bariatría',
+    icon: '🏨',
+    description: 'Cirugía bariátrica compleja para obesidad severa'
+  },
+  {
+    id: 'revisional-bariatric',
+    name: 'Cirugía Bariátrica Revisional',
+    duration: 180,
+    category: 'Bariatría',
+    icon: '🔄',
+    description: 'Revisión o corrección de cirugía bariátrica previa'
   }
 ];
 
