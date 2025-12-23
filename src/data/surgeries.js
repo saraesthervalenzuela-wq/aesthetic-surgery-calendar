@@ -186,8 +186,8 @@ export const formatDuration = (minutes) => {
 
 // Business hours
 export const businessHours = {
-  start: 6, // 6 AM
-  end: 19   // 7 PM
+  start: 6,  // 6 AM
+  end: 16    // 4 PM
 };
 
 // Buffer days (minimum days before appointment)
