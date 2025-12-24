@@ -40,18 +40,20 @@ service cloud.firestore {
         isValidEmail(request.resource.data.patientEmail) &&
         request.resource.data.patientPhone is string &&
         isValidPhone(request.resource.data.patientPhone) &&
-        request.resource.data.surgeryId is string &&
-        request.resource.data.surgeryName is string &&
-        request.resource.data.duration is number &&
-        request.resource.data.duration > 0 &&
+        request.resource.data.procedureCount is number &&
+        request.resource.data.procedureCount > 0 &&
+        request.resource.data.procedures is list &&
+        request.resource.data.procedures.size() > 0 &&
+        request.resource.data.totalDuration is number &&
+        request.resource.data.totalDuration > 0 &&
         request.resource.data.date is timestamp &&
         isFutureDate(request.resource.data.date) &&
         request.resource.data.status is string &&
         request.resource.data.status in ['confirmed', 'pending'] &&
         request.resource.data.createdAt is timestamp;
 
-      // Only admins can read all appointments
-      allow read: if isAdmin();
+      // Anyone can read appointments (needed for availability check)
+      allow read: if true;
 
       // Admins can update and delete
       allow update, delete: if isAdmin();
