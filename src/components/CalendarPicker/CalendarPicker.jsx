@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Calendar as CalendarIcon,
   Clock,
   Sun,
-  Sunset
+  Sunset,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
-import { 
-  format, 
-  addMonths, 
-  subMonths, 
-  startOfMonth, 
-  endOfMonth, 
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
   startOfWeek,
   endOfWeek,
   addDays,
@@ -26,7 +28,15 @@ import {
   isAfter
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { businessHours } from '../../data/surgeries';
+import {
+  businessHours,
+  isSurgeryAllowedOnDay,
+  canAddAppointment,
+  getRemainingSlots,
+  getDayTypeLabel,
+  getSizeLabel,
+  dayRestrictions
+} from '../../data/surgeries';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import './CalendarPicker.css';
@@ -40,6 +50,34 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
 
   // Calculate total duration of all selected procedures
   const totalDuration = selectedProcedures.reduce((sum, proc) => sum + proc.duration, 0);
+
+  // Check if all selected procedures are allowed on a specific day
+  const areProceduresAllowedOnDay = (date) => {
+    if (!selectedProcedures.length) return true;
+    return selectedProcedures.every(proc => isSurgeryAllowedOnDay(proc, date));
+  };
+
+  // Get the type of surgery day
+  const getSurgeryDayType = (date) => {
+    const dayOfWeek = date.getDay();
+    if (dayRestrictions.plastic.includes(dayOfWeek)) {
+      return 'plastic';
+    }
+    return 'bariatric';
+  };
+
+  // Check if there's capacity for the selected procedures on the date
+  const hasCapacityForProcedures = (existingAppointments) => {
+    // Check each selected procedure
+    for (const proc of selectedProcedures) {
+      if (!canAddAppointment(existingAppointments, proc)) {
+        return false;
+      }
+      // Add to existing for next check
+      existingAppointments = [...existingAppointments, proc];
+    }
+    return true;
+  };
 
   // Generate time slots based on business hours
   const generateTimeSlots = () => {
@@ -101,7 +139,7 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
     const businessEnd = setMinutes(setHours(new Date(selectedDate), businessHours.end), 0);
     if (isAfter(slotEnd, businessEnd)) return false;
 
-    // Check against booked appointments
+    // Check against booked appointments for time overlap
     for (const appointment of bookedSlots) {
       const appointmentStart = new Date(appointment.date);
       const appointmentEnd = new Date(appointmentStart.getTime() + appointment.totalDuration * 60000);
@@ -112,8 +150,22 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
       }
     }
 
+    // Check daily capacity limits
+    if (!hasCapacityForProcedures(bookedSlots)) {
+      return false;
+    }
+
     return true;
   };
+
+  // Get remaining capacity info for the selected date
+  const getRemainingCapacityInfo = () => {
+    if (!selectedDate || !bookedSlots) return null;
+    const remaining = getRemainingSlots(bookedSlots);
+    return remaining;
+  };
+
+  const remainingCapacity = getRemainingCapacityInfo();
 
   // Render calendar header
   const renderHeader = () => {
@@ -164,19 +216,31 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
     while (day <= endDate) {
       for (let i = 0; i < 7; i++) {
         const currentDay = day;
-        const isDisabled = isBefore(currentDay, minDate);
+        const isPastDate = isBefore(currentDay, minDate);
         const isSelected = selectedDate && isSameDay(currentDay, selectedDate);
         const isCurrentMonth = isSameMonth(currentDay, monthStart);
+
+        // Check if procedures are allowed on this day
+        const proceduresAllowed = areProceduresAllowedOnDay(currentDay);
+        const dayType = getSurgeryDayType(currentDay);
+        const isDisabled = isPastDate || !proceduresAllowed;
+
+        // Get day type indicator
+        const dayTypeClass = dayType === 'plastic' ? 'plastic-day' : 'bariatric-day';
 
         days.push(
           <motion.div
             key={day.toString()}
             whileHover={!isDisabled ? { scale: 1.1 } : {}}
             whileTap={!isDisabled ? { scale: 0.95 } : {}}
-            className={`calendar-cell ${!isCurrentMonth ? 'other-month' : ''} ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+            className={`calendar-cell ${!isCurrentMonth ? 'other-month' : ''} ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''} ${dayTypeClass} ${!proceduresAllowed && !isPastDate ? 'wrong-type' : ''}`}
             onClick={() => !isDisabled && onDateSelect(currentDay)}
+            title={!proceduresAllowed && !isPastDate ? `Este día es para ${getDayTypeLabel(currentDay)}` : ''}
           >
             <span>{format(currentDay, 'd')}</span>
+            {isCurrentMonth && !isPastDate && (
+              <span className="day-type-dot"></span>
+            )}
           </motion.div>
         );
         day = addDays(day, 1);
@@ -205,6 +269,15 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
     return 'afternoon';
   };
 
+  // Get the surgery type of selected procedures
+  const getSelectedSurgeryType = () => {
+    if (!selectedProcedures.length) return null;
+    const hasBariatric = selectedProcedures.some(p => p.category === 'Bariatría');
+    return hasBariatric ? 'bariatric' : 'plastic';
+  };
+
+  const selectedSurgeryType = getSelectedSurgeryType();
+
   return (
     <div className="calendar-picker">
       <div className="picker-section">
@@ -213,6 +286,30 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
           <div>
             <h2>Selecciona la Fecha</h2>
             <p>Las citas se programan con mínimo 1 semana de anticipación</p>
+          </div>
+        </div>
+
+        {/* Day type info message */}
+        {selectedSurgeryType && (
+          <div className={`day-type-info ${selectedSurgeryType}`}>
+            <Info size={18} />
+            <span>
+              {selectedSurgeryType === 'bariatric'
+                ? 'Cirugías Bariátricas: Viernes a Lunes'
+                : 'Cirugías Plásticas: Martes a Jueves'}
+            </span>
+          </div>
+        )}
+
+        {/* Calendar legend */}
+        <div className="calendar-legend">
+          <div className="legend-item">
+            <span className="legend-dot plastic"></span>
+            <span>Plásticas (Mar-Jue)</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-dot bariatric"></span>
+            <span>Bariátricas (Vie-Lun)</span>
           </div>
         </div>
 
@@ -238,6 +335,19 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
                 <p>{format(selectedDate, "EEEE, d 'de' MMMM", { locale: es })}</p>
               </div>
             </div>
+
+            {/* Capacity info */}
+            {remainingCapacity && (
+              <div className="capacity-info">
+                <AlertTriangle size={16} />
+                <span>Espacios disponibles: </span>
+                <span className="capacity-badges">
+                  <span className="badge small">{remainingCapacity.small} {getSizeLabel('small')}s</span>
+                  <span className="badge medium">{remainingCapacity.medium} {getSizeLabel('medium')}s</span>
+                  <span className="badge large">{remainingCapacity.large} {getSizeLabel('large')}s</span>
+                </span>
+              </div>
+            )}
 
             {loading ? (
               <div className="loading-times">

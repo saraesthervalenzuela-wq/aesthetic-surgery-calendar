@@ -269,6 +269,31 @@
   letter-spacing: 0.05em;
 }
 
+/* Surgery Size Indicator */
+.surgery-size {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.surgery-size.size-small {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.surgery-size.size-medium {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.surgery-size.size-large {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
 .surgery-select-indicator {
   color: var(--gray-300);
   transition: var(--transition-base);

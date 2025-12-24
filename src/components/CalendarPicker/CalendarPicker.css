@@ -144,6 +144,147 @@
   box-shadow: var(--shadow-accent);
 }
 
+/* Day Type Indicators */
+.calendar-cell {
+  position: relative;
+  flex-direction: column;
+}
+
+.day-type-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+}
+
+.calendar-cell.plastic-day .day-type-dot {
+  background-color: #8b5cf6; /* Purple for plastic surgeries */
+}
+
+.calendar-cell.bariatric-day .day-type-dot {
+  background-color: #10b981; /* Green for bariatric surgeries */
+}
+
+.calendar-cell.wrong-type {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.calendar-cell.wrong-type:hover {
+  background: var(--white);
+  color: var(--gray-400);
+}
+
+.calendar-cell.selected .day-type-dot {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Calendar Legend */
+.calendar-legend {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--gray-600);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.plastic {
+  background-color: #8b5cf6;
+}
+
+.legend-dot.bariatric {
+  background-color: #10b981;
+}
+
+/* Day Type Info Message */
+.day-type-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.day-type-info.plastic {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.day-type-info.bariatric {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.day-type-info svg {
+  flex-shrink: 0;
+}
+
+/* Capacity Info */
+.capacity-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.capacity-info svg {
+  color: var(--primary);
+}
+
+.capacity-badges {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.capacity-badges .badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.capacity-badges .badge.small {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.capacity-badges .badge.medium {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.capacity-badges .badge.large {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
 /* Time Slots Styles */
 .time-section {
   overflow: hidden;

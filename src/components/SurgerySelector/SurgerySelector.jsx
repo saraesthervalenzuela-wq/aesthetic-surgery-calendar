@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, ChevronRight, Search, Sparkles, Check, AlertCircle } from 'lucide-react';
-import { surgeries, formatDuration, getCategories } from '../../data/surgeries';
+import { surgeries, formatDuration, getCategories, getSizeLabel } from '../../data/surgeries';
 import './SurgerySelector.css';
 
 const SurgerySelector = ({ requiredCount, selectedProcedures, onSelect }) => {
@@ -126,6 +126,9 @@ const SurgerySelector = ({ requiredCount, selectedProcedures, onSelect }) => {
                     <span className="surgery-duration">
                       <Clock size={14} />
                       {formatDuration(surgery.duration)}
+                    </span>
+                    <span className={`surgery-size size-${surgery.size}`}>
+                      {getSizeLabel(surgery.size)}
                     </span>
                     <span className="surgery-category">{surgery.category}</span>
                   </div>

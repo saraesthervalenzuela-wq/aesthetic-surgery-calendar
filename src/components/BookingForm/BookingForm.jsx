@@ -99,6 +99,7 @@ const BookingForm = ({ procedures, date, time, onSuccess, onReset }) => {
           name: proc.name,
           duration: proc.duration,
           category: proc.category,
+          size: proc.size,
           icon: proc.icon
         })),
         totalDuration: totalDuration,
