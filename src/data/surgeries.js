@@ -284,67 +284,92 @@ export const getSurgerySize = (surgery) => {
   return surgery.size || 'medium';
 };
 
-// Check if adding a new appointment would exceed daily limits
-export const canAddAppointment = (existingAppointments, newSurgery) => {
-  const counts = {
-    large: 0,
-    medium: 0,
-    small: 0
-  };
+// Count procedures by size from appointments
+export const countProceduresBySize = (appointments) => {
+  const counts = { large: 0, medium: 0, small: 0 };
 
-  // Count existing appointments by size
-  existingAppointments.forEach(apt => {
-    const size = apt.size || 'medium';
-    counts[size]++;
+  appointments.forEach(apt => {
+    // Handle both single procedure appointments and multi-procedure appointments
+    if (apt.procedures && Array.isArray(apt.procedures)) {
+      apt.procedures.forEach(proc => {
+        const size = proc.size || 'medium';
+        counts[size]++;
+      });
+    } else {
+      // Fallback for old format or direct procedure objects
+      const size = apt.size || 'medium';
+      counts[size]++;
+    }
   });
 
-  // Add the new surgery
-  const newSize = getSurgerySize(newSurgery);
-  counts[newSize]++;
+  return counts;
+};
 
-  // Check if any valid combination allows this
-  return validCombinations.some(combo =>
+// Find which valid combinations are still possible given current counts
+export const getValidCombinationsForCounts = (counts) => {
+  return validCombinations.filter(combo =>
     counts.large <= combo.large &&
     counts.medium <= combo.medium &&
     counts.small <= combo.small
   );
 };
 
-// Get remaining slots for each size category
-export const getRemainingSlots = (existingAppointments) => {
-  const counts = {
-    large: 0,
-    medium: 0,
-    small: 0
-  };
+// Check if adding a new appointment would exceed daily limits
+export const canAddAppointment = (existingAppointments, newSurgery) => {
+  const counts = countProceduresBySize(existingAppointments);
 
-  existingAppointments.forEach(apt => {
-    const size = apt.size || 'medium';
+  // Add the new surgery
+  const newSize = getSurgerySize(newSurgery);
+  counts[newSize]++;
+
+  // Check if any valid combination allows this exact count
+  const validCombos = getValidCombinationsForCounts(counts);
+  return validCombos.length > 0;
+};
+
+// Check if adding multiple procedures would exceed daily limits
+export const canAddMultipleProcedures = (existingAppointments, newProcedures) => {
+  const counts = countProceduresBySize(existingAppointments);
+
+  // Add all new procedures
+  newProcedures.forEach(proc => {
+    const size = getSurgerySize(proc);
     counts[size]++;
   });
 
-  // Find the best matching combination that can still accommodate more appointments
-  let bestRemaining = { large: 0, medium: 0, small: 0 };
+  // Check if any valid combination allows this
+  const validCombos = getValidCombinationsForCounts(counts);
+  return validCombos.length > 0;
+};
 
-  validCombinations.forEach(combo => {
-    if (counts.large <= combo.large &&
-        counts.medium <= combo.medium &&
-        counts.small <= combo.small) {
-      const remaining = {
-        large: combo.large - counts.large,
-        medium: combo.medium - counts.medium,
-        small: combo.small - counts.small
-      };
-      // Keep the combination with most remaining slots
-      const totalRemaining = remaining.large + remaining.medium + remaining.small;
-      const bestTotal = bestRemaining.large + bestRemaining.medium + bestRemaining.small;
-      if (totalRemaining > bestTotal) {
-        bestRemaining = remaining;
-      }
-    }
+// Get remaining slots for each size category
+export const getRemainingSlots = (existingAppointments) => {
+  const counts = countProceduresBySize(existingAppointments);
+
+  // Find all valid combinations that can still accommodate the current counts
+  const validCombos = getValidCombinationsForCounts(counts);
+
+  if (validCombos.length === 0) {
+    return { large: 0, medium: 0, small: 0 };
+  }
+
+  // Calculate maximum remaining for each size across all valid combinations
+  let maxRemaining = { large: 0, medium: 0, small: 0 };
+
+  validCombos.forEach(combo => {
+    const remaining = {
+      large: combo.large - counts.large,
+      medium: combo.medium - counts.medium,
+      small: combo.small - counts.small
+    };
+
+    // Keep the maximum for each size
+    maxRemaining.large = Math.max(maxRemaining.large, remaining.large);
+    maxRemaining.medium = Math.max(maxRemaining.medium, remaining.medium);
+    maxRemaining.small = Math.max(maxRemaining.small, remaining.small);
   });
 
-  return bestRemaining;
+  return maxRemaining;
 };
 
 // Get day type label

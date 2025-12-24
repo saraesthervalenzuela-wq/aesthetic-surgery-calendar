@@ -31,7 +31,7 @@ import { es } from 'date-fns/locale';
 import {
   businessHours,
   isSurgeryAllowedOnDay,
-  canAddAppointment,
+  canAddMultipleProcedures,
   getRemainingSlots,
   getDayTypeLabel,
   getSizeLabel,
@@ -68,15 +68,8 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
 
   // Check if there's capacity for the selected procedures on the date
   const hasCapacityForProcedures = (existingAppointments) => {
-    // Check each selected procedure
-    for (const proc of selectedProcedures) {
-      if (!canAddAppointment(existingAppointments, proc)) {
-        return false;
-      }
-      // Add to existing for next check
-      existingAppointments = [...existingAppointments, proc];
-    }
-    return true;
+    if (!selectedProcedures.length) return true;
+    return canAddMultipleProcedures(existingAppointments, selectedProcedures);
   };
 
   // Generate time slots based on business hours
