@@ -22,10 +22,7 @@ import {
   isSameMonth,
   isSameDay,
   isBefore,
-  addWeeks,
-  setHours,
-  setMinutes,
-  isAfter
+  addWeeks
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -48,9 +45,6 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
 
   const minDate = addWeeks(new Date(), 1); // 1 week buffer
 
-  // Calculate total duration of all selected procedures
-  const totalDuration = selectedProcedures.reduce((sum, proc) => sum + proc.duration, 0);
-
   // Check if all selected procedures are allowed on a specific day
   const areProceduresAllowedOnDay = (date) => {
     if (!selectedProcedures.length) return true;
@@ -69,7 +63,13 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
   // Check if there's capacity for the selected procedures on the date
   const hasCapacityForProcedures = (existingAppointments) => {
     if (!selectedProcedures.length) return true;
-    return canAddMultipleProcedures(existingAppointments, selectedProcedures);
+    const canAdd = canAddMultipleProcedures(existingAppointments, selectedProcedures);
+    console.log('Validación de capacidad:', {
+      citasExistentes: existingAppointments.length,
+      procedimientosNuevos: selectedProcedures.map(p => ({ name: p.name, size: p.size })),
+      puedeAgregar: canAdd
+    });
+    return canAdd;
   };
 
   // Generate time slots based on business hours
@@ -88,31 +88,37 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
   useEffect(() => {
     const fetchBookedSlots = async () => {
       if (!selectedDate) return;
-      
+
       setLoading(true);
       try {
         const startOfDay = new Date(selectedDate);
         startOfDay.setHours(0, 0, 0, 0);
-        
+
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
 
         const appointmentsRef = collection(db, 'appointments');
+        // Query without status filter (Firestore limitation with != and range operators)
         const q = query(
           appointmentsRef,
           where('date', '>=', startOfDay),
-          where('date', '<=', endOfDay),
-          where('status', '!=', 'cancelled')
+          where('date', '<=', endOfDay)
         );
-        
+
         const snapshot = await getDocs(q);
-        const booked = snapshot.docs.map(doc => ({
-          ...doc.data(),
-          date: doc.data().date.toDate()
-        }));
+        // Filter out cancelled appointments in JS
+        const booked = snapshot.docs
+          .map(doc => ({
+            ...doc.data(),
+            date: doc.data().date.toDate()
+          }))
+          .filter(apt => apt.status !== 'cancelled');
+
+        console.log('Citas encontradas para el día:', booked.length, booked);
         setBookedSlots(booked);
       } catch (error) {
         console.error('Error fetching appointments:', error);
+        setBookedSlots([]);
       } finally {
         setLoading(false);
       }
@@ -122,28 +128,12 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
   }, [selectedDate]);
 
   // Check if a time slot is available
-  const isSlotAvailable = (hour, minute) => {
+  const isSlotAvailable = () => {
     if (!selectedProcedures.length || !selectedDate) return true;
 
-    const slotStart = setMinutes(setHours(new Date(selectedDate), hour), minute);
-    const slotEnd = new Date(slotStart.getTime() + totalDuration * 60000);
-
-    // Check if slot ends after business hours
-    const businessEnd = setMinutes(setHours(new Date(selectedDate), businessHours.end), 0);
-    if (isAfter(slotEnd, businessEnd)) return false;
-
-    // Check against booked appointments for time overlap
-    for (const appointment of bookedSlots) {
-      const appointmentStart = new Date(appointment.date);
-      const appointmentEnd = new Date(appointmentStart.getTime() + appointment.totalDuration * 60000);
-
-      // Check for overlap
-      if (slotStart < appointmentEnd && slotEnd > appointmentStart) {
-        return false;
-      }
-    }
-
-    // Check daily capacity limits
+    // Only check daily capacity limits (arreglos)
+    // No time overlap check - 3 surgeons can work in parallel
+    // No end-time check - surgeons manage their own schedules
     if (!hasCapacityForProcedures(bookedSlots)) {
       return false;
     }
