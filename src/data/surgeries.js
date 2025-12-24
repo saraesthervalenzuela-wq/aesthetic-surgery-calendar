@@ -306,12 +306,23 @@ export const countProceduresBySize = (appointments) => {
 };
 
 // Find which valid combinations are still possible given current counts
+// A combination is valid ONLY if:
+// 1. The counts don't exceed the arreglo's limits
+// 2. If an arreglo has 0 for a size, we can't use it if we have any of that size
 export const getValidCombinationsForCounts = (counts) => {
-  return validCombinations.filter(combo =>
-    counts.large <= combo.large &&
-    counts.medium <= combo.medium &&
-    counts.small <= combo.small
-  );
+  return validCombinations.filter(combo => {
+    // Check limits
+    if (counts.large > combo.large) return false;
+    if (counts.medium > combo.medium) return false;
+    if (counts.small > combo.small) return false;
+
+    // If arreglo doesn't allow a size (limit is 0), we can't have ANY of that size
+    if (combo.large === 0 && counts.large > 0) return false;
+    if (combo.medium === 0 && counts.medium > 0) return false;
+    if (combo.small === 0 && counts.small > 0) return false;
+
+    return true;
+  });
 };
 
 // Check if adding a new appointment would exceed daily limits
@@ -329,7 +340,8 @@ export const canAddAppointment = (existingAppointments, newSurgery) => {
 
 // Check if adding multiple procedures would exceed daily limits
 export const canAddMultipleProcedures = (existingAppointments, newProcedures) => {
-  const counts = countProceduresBySize(existingAppointments);
+  const existingCounts = countProceduresBySize(existingAppointments);
+  const counts = { ...existingCounts };
 
   // Add all new procedures
   newProcedures.forEach(proc => {
@@ -339,6 +351,15 @@ export const canAddMultipleProcedures = (existingAppointments, newProcedures) =>
 
   // Check if any valid combination allows this
   const validCombos = getValidCombinationsForCounts(counts);
+
+  console.log('canAddMultipleProcedures:', {
+    existingCounts,
+    newProcedures: newProcedures.map(p => p.size),
+    totalCounts: counts,
+    validCombos: validCombos.map(c => c.name),
+    result: validCombos.length > 0
+  });
+
   return validCombos.length > 0;
 };
 
@@ -353,23 +374,53 @@ export const getRemainingSlots = (existingAppointments) => {
     return { large: 0, medium: 0, small: 0 };
   }
 
-  // Calculate maximum remaining for each size across all valid combinations
-  let maxRemaining = { large: 0, medium: 0, small: 0 };
+  // For each size, check if adding one more would still be valid
+  // This gives us the TRUE remaining capacity
+  const remaining = { large: 0, medium: 0, small: 0 };
 
-  validCombos.forEach(combo => {
-    const remaining = {
-      large: combo.large - counts.large,
-      medium: combo.medium - counts.medium,
-      small: combo.small - counts.small
-    };
+  // Check if we can add one more large
+  const countsWithLarge = { ...counts, large: counts.large + 1 };
+  if (getValidCombinationsForCounts(countsWithLarge).length > 0) {
+    // Find max large we can still add
+    for (let i = 1; i <= 3; i++) {
+      const testCounts = { ...counts, large: counts.large + i };
+      if (getValidCombinationsForCounts(testCounts).length > 0) {
+        remaining.large = i;
+      } else {
+        break;
+      }
+    }
+  }
 
-    // Keep the maximum for each size
-    maxRemaining.large = Math.max(maxRemaining.large, remaining.large);
-    maxRemaining.medium = Math.max(maxRemaining.medium, remaining.medium);
-    maxRemaining.small = Math.max(maxRemaining.small, remaining.small);
-  });
+  // Check if we can add one more medium
+  const countsWithMedium = { ...counts, medium: counts.medium + 1 };
+  if (getValidCombinationsForCounts(countsWithMedium).length > 0) {
+    // Find max medium we can still add
+    for (let i = 1; i <= 5; i++) {
+      const testCounts = { ...counts, medium: counts.medium + i };
+      if (getValidCombinationsForCounts(testCounts).length > 0) {
+        remaining.medium = i;
+      } else {
+        break;
+      }
+    }
+  }
 
-  return maxRemaining;
+  // Check if we can add one more small
+  const countsWithSmall = { ...counts, small: counts.small + 1 };
+  if (getValidCombinationsForCounts(countsWithSmall).length > 0) {
+    // Find max small we can still add
+    for (let i = 1; i <= 10; i++) {
+      const testCounts = { ...counts, small: counts.small + i };
+      if (getValidCombinationsForCounts(testCounts).length > 0) {
+        remaining.small = i;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return remaining;
 };
 
 // Get day type label
