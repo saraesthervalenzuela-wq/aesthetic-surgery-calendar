@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { User, Mail, Phone, Send, CheckCircle, AlertCircle, Loader, Info } from 'lucide-react';
 import { format, setHours, setMinutes } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
@@ -217,6 +217,15 @@ const BookingForm = ({ procedures, date, time, onSuccess, onReset }) => {
             <span className="summary-value">{formatDuration(totalDuration)}</span>
           </div>
         </div>
+      </div>
+
+      <div className="date-disclaimer">
+        <Info size={18} />
+        <p>
+          <strong>Nota importante:</strong> La fecha seleccionada es aproximada.
+          Recibirás un correo electrónico si hay alguna modificación y para confirmar
+          tu fecha definitiva de cirugía.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>
