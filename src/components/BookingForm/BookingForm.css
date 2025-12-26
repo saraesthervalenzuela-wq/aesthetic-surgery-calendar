@@ -85,6 +85,34 @@
   text-transform: capitalize;
 }
 
+.date-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(147, 221, 230, 0.15) 0%, rgba(0, 61, 150, 0.1) 100%);
+  border: 1px solid rgba(147, 221, 230, 0.4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+}
+
+.date-disclaimer svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.date-disclaimer p {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.date-disclaimer strong {
+  color: var(--primary);
+}
+
 .form-group {
   margin-bottom: var(--space-lg);
 }
