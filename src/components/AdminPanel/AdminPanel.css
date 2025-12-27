@@ -207,7 +207,7 @@
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-md);
   padding: var(--space-lg);
   background: var(--white);
@@ -238,6 +238,10 @@
 
 .stat-icon.confirmed {
   background: linear-gradient(135deg, #4ecca3 0%, #38b28a 100%);
+}
+
+.stat-icon.pending {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
 }
 
 .stat-icon.cancelled {
@@ -378,8 +382,46 @@
 .appointment-dots .dot {
   width: 4px;
   height: 4px;
-  background: var(--success);
   border-radius: 50%;
+}
+
+.appointment-dots .dot.confirmed {
+  background: var(--success);
+}
+
+.appointment-dots .dot.pending {
+  background: #f39c12;
+}
+
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--gray-200);
+}
+
+.calendar-legend span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.7rem;
+  color: var(--gray-500);
+}
+
+.calendar-legend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.calendar-legend .dot.pending {
+  background: #f39c12;
+}
+
+.calendar-legend .dot.confirmed {
+  background: var(--success);
 }
 
 .selected-date-info {
@@ -513,6 +555,10 @@
   border-left: 4px solid var(--success);
 }
 
+.appointment-card.pending {
+  border-left-color: #f39c12;
+}
+
 .appointment-card.cancelled {
   border-left-color: var(--error);
   opacity: 0.7;
@@ -594,6 +640,11 @@
 .status-badge.confirmed {
   background: rgba(78, 204, 163, 0.15);
   color: #2d9d78;
+}
+
+.status-badge.pending {
+  background: rgba(243, 156, 18, 0.15);
+  color: #d68910;
 }
 
 .status-badge.cancelled {
@@ -744,6 +795,109 @@
 .modal-actions .action-btn.delete:hover {
   background: var(--gray-800);
   color: var(--white);
+}
+
+.modal-actions .action-btn.authorize {
+  background: rgba(78, 204, 163, 0.15);
+  color: #2d9d78;
+}
+
+.modal-actions .action-btn.authorize:hover {
+  background: var(--success);
+  color: var(--white);
+}
+
+.modal-actions .action-btn.reschedule {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
+
+.modal-actions .action-btn.reschedule:hover {
+  background: #667eea;
+  color: var(--white);
+}
+
+/* Reschedule Modal */
+.reschedule-modal {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+
+.reschedule-content {
+  margin-bottom: var(--space-xl);
+}
+
+.reschedule-patient {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+}
+
+.reschedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.reschedule-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.reschedule-form .form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.reschedule-form .form-group input,
+.reschedule-form .form-group select {
+  padding: var(--space-md);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition-base);
+}
+
+.reschedule-form .form-group input:focus,
+.reschedule-form .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.modal-actions .action-btn.cancel-reschedule {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.modal-actions .action-btn.cancel-reschedule:hover {
+  background: var(--gray-200);
+}
+
+.modal-actions .action-btn.confirm-reschedule {
+  background: var(--gradient-primary);
+  color: var(--white);
+}
+
+.modal-actions .action-btn.confirm-reschedule:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
+}
+
+.modal-actions .action-btn.confirm-reschedule:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Responsive */

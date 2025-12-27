@@ -104,7 +104,7 @@ const BookingForm = ({ procedures, date, time, onSuccess, onReset }) => {
         })),
         totalDuration: totalDuration,
         date: Timestamp.fromDate(appointmentDate),
-        status: 'confirmed',
+        status: 'pending',
         createdAt: Timestamp.now()
       };
 
@@ -140,8 +140,8 @@ const BookingForm = ({ procedures, date, time, onSuccess, onReset }) => {
         <div className="success-icon">
           <CheckCircle size={60} />
         </div>
-        <h2>¡Cita Agendada!</h2>
-        <p>Hemos enviado los detalles a tu correo electrónico</p>
+        <h2>¡Solicitud Enviada!</h2>
+        <p>Tu cita está pendiente de autorización. Te notificaremos por correo cuando sea confirmada.</p>
         <div className="success-details">
           <div className="detail-item">
             <span className="label">Procedimientos:</span>
