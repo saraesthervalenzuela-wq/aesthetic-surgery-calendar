@@ -263,8 +263,8 @@ export const validCombinations = [
 export const dayRestrictions = {
   // Martes a Jueves: Solo cirugías plásticas (Facial, Corporal)
   plastic: [2, 3, 4], // Tuesday, Wednesday, Thursday
-  // Viernes a Lunes: Solo cirugías bariátricas
-  bariatric: [5, 6, 0, 1] // Friday, Saturday, Sunday, Monday
+  // Viernes y Lunes: Solo cirugías bariátricas
+  bariatric: [5, 1] // Friday, Monday
 };
 
 // Check if a surgery type is allowed on a specific day

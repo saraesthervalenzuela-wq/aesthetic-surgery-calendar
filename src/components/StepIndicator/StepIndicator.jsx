@@ -1,13 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Layers, Sparkles, Calendar, UserCheck, Check } from 'lucide-react';
+import { Sparkles, Calendar, UserCheck, Check } from 'lucide-react';
 import './StepIndicator.css';
 
 const steps = [
-  { id: 1, label: 'Cantidad', icon: Layers },
-  { id: 2, label: 'Procedimientos', icon: Sparkles },
-  { id: 3, label: 'Fecha y Hora', icon: Calendar },
-  { id: 4, label: 'Tus Datos', icon: UserCheck }
+  { id: 1, label: 'Procedimientos', icon: Sparkles },
+  { id: 2, label: 'Fecha y Hora', icon: Calendar },
+  { id: 3, label: 'Tus Datos', icon: UserCheck }
 ];
 
 const StepIndicator = ({ currentStep }) => {

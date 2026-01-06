@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Settings } from 'lucide-react';
 import Header from './components/Header/Header';
 import StepIndicator from './components/StepIndicator/StepIndicator';
-import ProcedureCountSelector from './components/ProcedureCountSelector/ProcedureCountSelector';
 import SurgerySelector from './components/SurgerySelector/SurgerySelector';
 import CalendarPicker from './components/CalendarPicker/CalendarPicker';
 import BookingForm from './components/BookingForm/BookingForm';
@@ -13,16 +12,10 @@ import './App.css';
 
 function App() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [procedureCount, setProcedureCount] = useState(null);
   const [selectedProcedures, setSelectedProcedures] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [showAdmin, setShowAdmin] = useState(false);
-
-  const handleCountSelect = useCallback((count) => {
-    setProcedureCount(count);
-    setCurrentStep(2);
-  }, []);
 
   const handleProceduresSelect = useCallback((procedures) => {
     setSelectedProcedures(procedures);
@@ -35,28 +28,24 @@ function App() {
 
   const handleTimeSelect = useCallback((time) => {
     setSelectedTime(time);
-    setCurrentStep(4);
+    setCurrentStep(3);
   }, []);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
-      if (currentStep === 4) {
-        setSelectedTime(null);
-      }
       if (currentStep === 3) {
-        setSelectedDate(null);
         setSelectedTime(null);
       }
       if (currentStep === 2) {
-        setSelectedProcedures([]);
+        setSelectedDate(null);
+        setSelectedTime(null);
       }
     }
   }, [currentStep]);
 
   const handleReset = useCallback(() => {
     setCurrentStep(1);
-    setProcedureCount(null);
     setSelectedProcedures([]);
     setSelectedDate(null);
     setSelectedTime(null);
@@ -66,7 +55,8 @@ function App() {
     // Optional: Could show a thank you message or redirect
   }, []);
 
-  const canProceedFromStep2 = selectedProcedures.length === procedureCount;
+  // Puede continuar si hay al menos 1 procedimiento seleccionado
+  const canProceedFromStep1 = selectedProcedures.length >= 1;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -79,9 +69,9 @@ function App() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <ProcedureCountSelector
-              selectedCount={procedureCount}
-              onSelect={handleCountSelect}
+            <SurgerySelector
+              selectedProcedures={selectedProcedures}
+              onSelect={handleProceduresSelect}
             />
           </motion.div>
         );
@@ -89,22 +79,6 @@ function App() {
         return (
           <motion.div
             key="step-2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <SurgerySelector
-              requiredCount={procedureCount}
-              selectedProcedures={selectedProcedures}
-              onSelect={handleProceduresSelect}
-            />
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div
-            key="step-3"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -119,10 +93,10 @@ function App() {
             />
           </motion.div>
         );
-      case 4:
+      case 3:
         return (
           <motion.div
-            key="step-4"
+            key="step-3"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
@@ -150,27 +124,29 @@ function App() {
         <StepIndicator currentStep={currentStep} />
         
         {/* Navigation Buttons */}
-        {currentStep > 1 && currentStep < 5 && (
+        {currentStep < 4 && (
           <div className="navigation-bar">
-            <button className="nav-button back" onClick={handleBack}>
-              <ArrowLeft size={18} />
-              <span>Atrás</span>
-            </button>
+            {currentStep > 1 && (
+              <button className="nav-button back" onClick={handleBack}>
+                <ArrowLeft size={18} />
+                <span>Atrás</span>
+              </button>
+            )}
 
-            {currentStep === 2 && canProceedFromStep2 && (
+            {currentStep === 1 && canProceedFromStep1 && (
               <button
                 className="nav-button next"
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(2)}
               >
                 <span>Continuar</span>
                 <ArrowRight size={18} />
               </button>
             )}
 
-            {currentStep === 3 && selectedTime && (
+            {currentStep === 2 && selectedTime && (
               <button
                 className="nav-button next"
-                onClick={() => setCurrentStep(4)}
+                onClick={() => setCurrentStep(3)}
               >
                 <span>Continuar</span>
                 <ArrowRight size={18} />

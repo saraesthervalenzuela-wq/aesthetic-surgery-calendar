@@ -1,183 +1,314 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ChevronRight, Search, Sparkles, Check, AlertCircle } from 'lucide-react';
-import { surgeries, formatDuration, getCategories, getSizeLabel } from '../../data/surgeries';
+import { Clock, Check, X } from 'lucide-react';
+import { surgeries, formatDuration, getSizeLabel, getCategories } from '../../data/surgeries';
 import './SurgerySelector.css';
 
-const SurgerySelector = ({ requiredCount, selectedProcedures, onSelect }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Todos');
+// Configuración de categorías
+const categoryConfig = {
+  'Facial': {
+    color: '#E67E8C',
+    gradient: 'linear-gradient(135deg, #E67E8C 0%, #D4666F 100%)',
+    description: 'Procedimientos para rostro y cabeza'
+  },
+  'Corporal': {
+    color: '#8B5A8C',
+    gradient: 'linear-gradient(135deg, #8B5A8C 0%, #6B4A6C 100%)',
+    description: 'Procedimientos para el cuerpo'
+  },
+  'Bariatría': {
+    color: '#5A8B8C',
+    gradient: 'linear-gradient(135deg, #5A8B8C 0%, #4A6B6C 100%)',
+    description: 'Cirugías para pérdida de peso'
+  }
+};
 
-  const categories = ['Todos', ...getCategories()];
+// Componente SVG del cuerpo con zonas interactivas
+const InteractiveBody = ({ activeCategory, hoveredCategory, onCategoryClick, onCategoryHover, getSelectedCount }) => {
+  return (
+    <svg viewBox="0 0 200 400" className="interactive-body-svg">
+      {/* Definiciones de gradientes */}
+      <defs>
+        <linearGradient id="facialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#E67E8C" />
+          <stop offset="100%" stopColor="#D4666F" />
+        </linearGradient>
+        <linearGradient id="corporalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8B5A8C" />
+          <stop offset="100%" stopColor="#6B4A6C" />
+        </linearGradient>
+        <linearGradient id="bariatricGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#5A8B8C" />
+          <stop offset="100%" stopColor="#4A6B6C" />
+        </linearGradient>
+      </defs>
 
-  const filteredSurgeries = surgeries.filter(surgery => {
-    const matchesSearch = surgery.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         surgery.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'Todos' || surgery.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+      {/* ZONA FACIAL - Cabeza y cuello */}
+      <g
+        className={`body-zone facial-zone ${activeCategory === 'Facial' ? 'active' : ''} ${hoveredCategory === 'Facial' ? 'hovered' : ''}`}
+        onClick={() => onCategoryClick('Facial')}
+        onMouseEnter={() => onCategoryHover('Facial')}
+        onMouseLeave={() => onCategoryHover(null)}
+      >
+        <ellipse cx="100" cy="45" rx="32" ry="38" className="zone-shape" />
+        <ellipse cx="65" cy="45" rx="6" ry="12" className="zone-shape" />
+        <ellipse cx="135" cy="45" rx="6" ry="12" className="zone-shape" />
+        <rect x="85" y="80" width="30" height="25" rx="8" className="zone-shape" />
+        <circle cx="88" cy="38" r="4" className="zone-detail" />
+        <circle cx="112" cy="38" r="4" className="zone-detail" />
+        <ellipse cx="100" cy="52" rx="4" ry="5" className="zone-detail" />
+        <path d="M90 65 Q100 72 110 65" className="zone-detail" fill="none" strokeWidth="2" />
+        <text x="100" y="20" className="zone-label">FACIAL</text>
+        {getSelectedCount('Facial') > 0 && (
+          <g className="selection-badge" transform="translate(130, 25)">
+            <circle r="12" fill="#4ecca3" />
+            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Facial')}</text>
+          </g>
+        )}
+      </g>
+
+      {/* ZONA CORPORAL - Torso, brazos y piernas */}
+      <g
+        className={`body-zone corporal-zone ${activeCategory === 'Corporal' ? 'active' : ''} ${hoveredCategory === 'Corporal' ? 'hovered' : ''}`}
+        onClick={() => onCategoryClick('Corporal')}
+        onMouseEnter={() => onCategoryHover('Corporal')}
+        onMouseLeave={() => onCategoryHover(null)}
+      >
+        <path d="M60 105 Q50 110 45 130 L45 145 L155 145 L155 130 Q150 110 140 105 Z" className="zone-shape" />
+        <path d="M45 130 Q30 140 25 170 L22 220 Q20 235 28 238 L38 238 Q45 235 43 220 L48 175 Q50 155 50 145" className="zone-shape" />
+        <path d="M155 130 Q170 140 175 170 L178 220 Q180 235 172 238 L162 238 Q155 235 157 220 L152 175 Q150 155 150 145" className="zone-shape" />
+        <ellipse cx="80" cy="135" rx="12" ry="10" className="zone-detail-light" />
+        <ellipse cx="120" cy="135" rx="12" ry="10" className="zone-detail-light" />
+        <path d="M55 200 L55 240 Q55 250 65 255 L65 255 L135 255 Q145 250 145 240 L145 200" className="zone-shape" />
+        <path d="M65 255 L60 320 L55 370 Q53 385 62 388 L82 388 Q90 385 88 370 L90 320 L95 255" className="zone-shape" />
+        <path d="M105 255 L110 320 L112 370 Q114 385 118 388 L138 388 Q147 385 145 370 L140 320 L135 255" className="zone-shape" />
+        <text x="100" y="280" className="zone-label">CORPORAL</text>
+        {getSelectedCount('Corporal') > 0 && (
+          <g className="selection-badge" transform="translate(155, 120)">
+            <circle r="12" fill="#4ecca3" />
+            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Corporal')}</text>
+          </g>
+        )}
+      </g>
+
+      {/* ZONA BARIÁTRICA - Abdomen/Estómago */}
+      <g
+        className={`body-zone bariatric-zone ${activeCategory === 'Bariatría' ? 'active' : ''} ${hoveredCategory === 'Bariatría' ? 'hovered' : ''}`}
+        onClick={() => onCategoryClick('Bariatría')}
+        onMouseEnter={() => onCategoryHover('Bariatría')}
+        onMouseLeave={() => onCategoryHover(null)}
+      >
+        <ellipse cx="100" cy="175" rx="42" ry="30" className="zone-shape" />
+        <path d="M85 165 Q100 155 115 165" className="zone-detail" fill="none" strokeWidth="2" />
+        <ellipse cx="100" cy="178" rx="15" ry="10" className="zone-detail" fill="none" strokeWidth="1.5" />
+        <text x="100" y="210" className="zone-label-small">BARIATRÍA</text>
+        {getSelectedCount('Bariatría') > 0 && (
+          <g className="selection-badge" transform="translate(145, 160)">
+            <circle r="12" fill="#4ecca3" />
+            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Bariatría')}</text>
+          </g>
+        )}
+      </g>
+    </svg>
+  );
+};
+
+const SurgerySelector = ({ selectedProcedures, onSelect }) => {
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const isSelected = (surgeryId) => {
     return selectedProcedures.some(p => p.id === surgeryId);
   };
 
-  const handleToggle = (surgery) => {
+  const handleProcedureToggle = (surgery) => {
     if (isSelected(surgery.id)) {
-      // Deseleccionar
       onSelect(selectedProcedures.filter(p => p.id !== surgery.id));
     } else {
-      // Seleccionar solo si no se ha alcanzado el límite
-      if (selectedProcedures.length < requiredCount) {
-        onSelect([...selectedProcedures, surgery]);
-      }
+      onSelect([...selectedProcedures, surgery]);
     }
   };
 
-  const selectionComplete = selectedProcedures.length === requiredCount;
-  const remaining = requiredCount - selectedProcedures.length;
+  const getCategoryProcedures = (category) => {
+    return surgeries.filter(s => s.category === category);
+  };
+
+  const getSelectedCountInCategory = (category) => {
+    return selectedProcedures.filter(p => p.category === category).length;
+  };
+
+  const displayCategory = hoveredCategory || activeCategory;
+  const displayConfig = displayCategory ? categoryConfig[displayCategory] : null;
 
   return (
     <div className="surgery-selector">
       <div className="selector-header">
-        <div className="selector-title">
-          <Sparkles size={24} />
-          <h2>Selecciona {requiredCount === 1 ? 'tu Procedimiento' : 'tus Procedimientos'}</h2>
-        </div>
-        <p className="selector-subtitle">
-          {requiredCount === 1
-            ? 'Elige el procedimiento estético que deseas agendar'
-            : `Selecciona exactamente ${requiredCount} procedimientos para tu sesión`
-          }
-        </p>
+        <h2>Selecciona tus Procedimientos</h2>
+        <p>Haz clic en una zona del cuerpo para ver los procedimientos disponibles</p>
       </div>
 
-      {/* Contador de selección */}
-      <div className={`selection-counter ${selectionComplete ? 'complete' : ''}`}>
-        <div className="counter-content">
-          <div className="counter-numbers">
-            <span className="current">{selectedProcedures.length}</span>
-            <span className="divider">/</span>
-            <span className="total">{requiredCount}</span>
-          </div>
-          <div className="counter-label">
-            {selectionComplete ? (
-              <span className="complete-text">
-                <Check size={16} /> Selección completa
-              </span>
-            ) : (
-              <span className="pending-text">
-                <AlertCircle size={16} />
-                {remaining === 1
-                  ? 'Selecciona 1 procedimiento más'
-                  : `Selecciona ${remaining} procedimientos más`
-                }
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="selector-controls">
-        <div className="search-box">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder="Buscar procedimiento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+      <div className="body-selector-main">
+        {/* Panel del cuerpo interactivo */}
+        <div className="body-visual-panel">
+          <InteractiveBody
+            activeCategory={activeCategory}
+            hoveredCategory={hoveredCategory}
+            onCategoryClick={setActiveCategory}
+            onCategoryHover={setHoveredCategory}
+            getSelectedCount={getSelectedCountInCategory}
           />
-        </div>
 
-        <div className="category-filters">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`category-btn ${activeCategory === category ? 'active' : ''}`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="surgeries-grid">
-        <AnimatePresence mode="popLayout">
-          {filteredSurgeries.map((surgery, index) => {
-            const selected = isSelected(surgery.id);
-            const canSelect = selected || selectedProcedures.length < requiredCount;
-
-            return (
+          {/* Indicador de zona */}
+          <AnimatePresence>
+            {displayCategory && (
               <motion.div
-                key={surgery.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2, delay: index * 0.03 }}
-                className={`surgery-card ${selected ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}`}
-                onClick={() => canSelect && handleToggle(surgery)}
+                className="zone-indicator"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                style={{ background: displayConfig?.gradient }}
               >
-                <div className="surgery-icon">{surgery.icon}</div>
-                <div className="surgery-info">
-                  <h3>{surgery.name}</h3>
-                  <p>{surgery.description}</p>
-                  <div className="surgery-meta">
-                    <span className="surgery-duration">
-                      <Clock size={14} />
-                      {formatDuration(surgery.duration)}
-                    </span>
-                    <span className={`surgery-size size-${surgery.size}`}>
-                      {getSizeLabel(surgery.size)}
-                    </span>
-                    <span className="surgery-category">{surgery.category}</span>
-                  </div>
-                </div>
-                <div className="surgery-select-indicator">
-                  {selected ? <Check size={24} /> : <ChevronRight size={20} />}
-                </div>
+                <span className="zone-name">{displayCategory}</span>
+                <span className="zone-desc">{displayConfig?.description}</span>
               </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
+            )}
+          </AnimatePresence>
 
-      {filteredSurgeries.length === 0 && (
-        <div className="no-results">
-          <p>No se encontraron procedimientos</p>
-        </div>
-      )}
-
-      {/* Lista de procedimientos seleccionados */}
-      {selectedProcedures.length > 0 && (
-        <motion.div
-          className="selected-procedures"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-        >
-          <h3>Procedimientos Seleccionados:</h3>
-          <div className="selected-list">
-            {selectedProcedures.map((proc, idx) => (
-              <div key={proc.id} className="selected-item">
-                <span className="selected-number">{idx + 1}</span>
-                <span className="selected-icon">{proc.icon}</span>
-                <span className="selected-name">{proc.name}</span>
-                <span className="selected-duration">{formatDuration(proc.duration)}</span>
-                <button
-                  className="remove-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(selectedProcedures.filter(p => p.id !== proc.id));
-                  }}
-                >
-                  ×
-                </button>
+          {/* Leyenda */}
+          <div className="body-legend">
+            <div className="legend-title">Zonas:</div>
+            {getCategories().map(cat => (
+              <div
+                key={cat}
+                className={`legend-item ${activeCategory === cat ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                <span className="legend-color" style={{ background: categoryConfig[cat]?.color }} />
+                <span className="legend-text">{cat}</span>
+                {getSelectedCountInCategory(cat) > 0 && (
+                  <span className="legend-count">{getSelectedCountInCategory(cat)}</span>
+                )}
               </div>
             ))}
           </div>
-          <div className="total-duration">
-            <strong>Duración Total:</strong>
-            <span>{formatDuration(selectedProcedures.reduce((sum, p) => sum + p.duration, 0))}</span>
+        </div>
+
+        {/* Panel de procedimientos */}
+        <AnimatePresence mode="wait">
+          {activeCategory ? (
+            <motion.div
+              className="procedures-panel"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              key={activeCategory}
+              style={{ '--panel-color': categoryConfig[activeCategory]?.color }}
+            >
+              <div className="panel-header" style={{ background: categoryConfig[activeCategory]?.gradient }}>
+                <h3>{activeCategory}</h3>
+                <span>{categoryConfig[activeCategory]?.description}</span>
+                <span className="procedure-count">
+                  {getCategoryProcedures(activeCategory).length} procedimientos
+                </span>
+              </div>
+
+              <div className="panel-procedures">
+                {getCategoryProcedures(activeCategory).map((surgery) => {
+                  const selected = isSelected(surgery.id);
+
+                  return (
+                    <motion.div
+                      key={surgery.id}
+                      className={`procedure-card ${selected ? 'selected' : ''}`}
+                      onClick={() => handleProcedureToggle(surgery)}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <div className="procedure-icon">{surgery.icon}</div>
+                      <div className="procedure-details">
+                        <h4>{surgery.name}</h4>
+                        <p>{surgery.description}</p>
+                        <div className="procedure-meta">
+                          <span className="duration">
+                            <Clock size={12} />
+                            {formatDuration(surgery.duration)}
+                          </span>
+                          <span className={`size size-${surgery.size}`}>
+                            {getSizeLabel(surgery.size)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="procedure-checkbox">
+                        {selected ? (
+                          <motion.div
+                            className="checkbox-checked"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                          >
+                            <Check size={14} />
+                          </motion.div>
+                        ) : (
+                          <div className="checkbox-empty" />
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="procedures-panel empty-panel"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="empty-panel-content">
+                <div className="empty-icon">👆</div>
+                <h3>Selecciona una zona</h3>
+                <p>Haz clic en cualquier parte del cuerpo para ver los procedimientos disponibles.</p>
+                <div className="zone-hints">
+                  <span style={{ color: categoryConfig['Facial']?.color }}>Cabeza → Facial</span>
+                  <span style={{ color: categoryConfig['Corporal']?.color }}>Cuerpo → Corporal</span>
+                  <span style={{ color: categoryConfig['Bariatría']?.color }}>Abdomen → Bariatría</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer con selección */}
+      {selectedProcedures.length > 0 && (
+        <motion.div
+          className="selection-footer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="selection-summary">
+            <div className="selection-count">
+              <span className="count">{selectedProcedures.length}</span>
+              <span className="label">procedimiento{selectedProcedures.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="selection-total">
+              <Clock size={16} />
+              <span>{formatDuration(selectedProcedures.reduce((sum, p) => sum + p.duration, 0))}</span>
+            </div>
+          </div>
+
+          <div className="selected-tags">
+            {selectedProcedures.map(proc => (
+              <span
+                key={proc.id}
+                className="selected-tag"
+                style={{ borderColor: categoryConfig[proc.category]?.color }}
+              >
+                {proc.icon} {proc.name}
+                <button onClick={() => onSelect(selectedProcedures.filter(p => p.id !== proc.id))}>
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
           </div>
         </motion.div>
       )}
