@@ -7,7 +7,6 @@ import {
   Clock,
   Sun,
   Sunset,
-  AlertTriangle,
   Info
 } from 'lucide-react';
 import {
@@ -26,12 +25,8 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  businessHours,
   isSurgeryAllowedOnDay,
-  canAddMultipleProcedures,
-  getRemainingSlots,
   getDayTypeLabel,
-  getSizeLabel,
   dayRestrictions
 } from '../../data/surgeries';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -60,24 +55,16 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
     return 'bariatric';
   };
 
-  // Check if there's capacity for the selected procedures on the date
-  const hasCapacityForProcedures = (existingAppointments) => {
-    if (!selectedProcedures.length) return true;
-    const canAdd = canAddMultipleProcedures(existingAppointments, selectedProcedures);
-    console.log('Validación de capacidad:', {
-      citasExistentes: existingAppointments.length,
-      procedimientosNuevos: selectedProcedures.map(p => ({ name: p.name, size: p.size })),
-      puedeAgregar: canAdd
-    });
-    return canAdd;
-  };
-
-  // Generate time slots based on business hours
+  // Generate time slots: 10 AM to 4 PM with 15 min intervals
   const generateTimeSlots = () => {
     const slots = [];
-    for (let hour = businessHours.start; hour < businessHours.end; hour++) {
+    const startHour = 10; // 10 AM
+    const endHour = 16;   // 4 PM
+    for (let hour = startHour; hour < endHour; hour++) {
       slots.push({ hour, minute: 0 });
+      slots.push({ hour, minute: 15 });
       slots.push({ hour, minute: 30 });
+      slots.push({ hour, minute: 45 });
     }
     return slots;
   };
@@ -127,28 +114,23 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
     fetchBookedSlots();
   }, [selectedDate]);
 
-  // Check if a time slot is available
-  const isSlotAvailable = () => {
-    if (!selectedProcedures.length || !selectedDate) return true;
+  // Check if a time slot is available (max 2 people per specific time slot)
+  const isSlotAvailable = (hour, minute) => {
+    if (!selectedDate) return true;
 
-    // Only check daily capacity limits (arreglos)
-    // No time overlap check - 3 surgeons can work in parallel
-    // No end-time check - surgeons manage their own schedules
-    if (!hasCapacityForProcedures(bookedSlots)) {
+    // Count appointments at the exact same time (hour AND minute)
+    const appointmentsAtSlot = bookedSlots.filter(apt => {
+      const aptDate = apt.date instanceof Date ? apt.date : apt.date.toDate();
+      return aptDate.getHours() === hour && aptDate.getMinutes() === minute;
+    });
+
+    // Max 2 appointments per time slot
+    if (appointmentsAtSlot.length >= 2) {
       return false;
     }
 
     return true;
   };
-
-  // Get remaining capacity info for the selected date
-  const getRemainingCapacityInfo = () => {
-    if (!selectedDate || !bookedSlots) return null;
-    const remaining = getRemainingSlots(bookedSlots);
-    return remaining;
-  };
-
-  const remainingCapacity = getRemainingCapacityInfo();
 
   // Render calendar header
   const renderHeader = () => {
@@ -278,7 +260,7 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
             <Info size={18} />
             <span>
               {selectedSurgeryType === 'bariatric'
-                ? 'Cirugías Bariátricas: Viernes a Lunes'
+                ? 'Cirugías Bariátricas: Viernes y Lunes'
                 : 'Cirugías Plásticas: Martes a Jueves'}
             </span>
           </div>
@@ -292,7 +274,7 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
           </div>
           <div className="legend-item">
             <span className="legend-dot bariatric"></span>
-            <span>Bariátricas (Vie-Lun)</span>
+            <span>Bariátricas (Vie y Lun)</span>
           </div>
         </div>
 
@@ -319,18 +301,6 @@ const CalendarPicker = ({ selectedProcedures, selectedDate, selectedTime, onDate
               </div>
             </div>
 
-            {/* Capacity info */}
-            {remainingCapacity && (
-              <div className="capacity-info">
-                <AlertTriangle size={16} />
-                <span>Espacios disponibles: </span>
-                <span className="capacity-badges">
-                  <span className="badge small">{remainingCapacity.small} {getSizeLabel('small')}s</span>
-                  <span className="badge medium">{remainingCapacity.medium} {getSizeLabel('medium')}s</span>
-                  <span className="badge large">{remainingCapacity.large} {getSizeLabel('large')}s</span>
-                </span>
-              </div>
-            )}
 
             {loading ? (
               <div className="loading-times">
