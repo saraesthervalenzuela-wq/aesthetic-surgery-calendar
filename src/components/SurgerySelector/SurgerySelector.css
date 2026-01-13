@@ -50,8 +50,8 @@
 }
 
 .category-card:hover {
-  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.2);
-  border-color: #D4A574;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
 }
 
 .category-card.has-selection {
@@ -112,7 +112,7 @@
 }
 
 .category-count {
-  color: #D4A574;
+  color: #3b82f6;
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -625,6 +625,315 @@
   }
 
   .facial-interactive-svg {
+    max-width: 280px;
+  }
+
+  .corporal-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .corporal-image-wrapper {
+    max-width: 280px;
+  }
+}
+
+/* Corporal Interactive */
+.corporal-interactive-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.corporal-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.corporal-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.corporal-point {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid white;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+.corporal-point:hover,
+.corporal-point.hovered {
+  transform: translate(-50%, -50%) scale(1.3);
+  background: #2563eb;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.5);
+}
+
+.corporal-point.selected {
+  background: #22c55e;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.corporal-point.selected:hover,
+.corporal-point.selected.hovered {
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.5);
+}
+
+.corporal-point svg {
+  color: white;
+}
+
+.corporal-tooltip {
+  position: absolute;
+  background: #1a202c;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  transform: translateX(-50%);
+}
+
+.corporal-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1a202c;
+}
+
+.corporal-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.corporal-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.corporal-legend .legend-item:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.corporal-legend .legend-item.selected {
+  background: linear-gradient(135deg, #f0fff4 0%, #f8fafc 100%);
+  border-color: #22c55e;
+}
+
+.corporal-legend .legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.corporal-legend .legend-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.corporal-legend .legend-check {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.corporal-view .procedures-header {
+  border-bottom: none;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.corporal-view .procedures-header-info {
+  text-align: center;
+  width: 100%;
+}
+
+/* Bariatria Interactive */
+.bariatria-interactive-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.bariatria-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.bariatria-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.bariatria-point {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid white;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+.bariatria-point:hover,
+.bariatria-point.hovered {
+  transform: translate(-50%, -50%) scale(1.3);
+  background: #2563eb;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.5);
+}
+
+.bariatria-point.selected {
+  background: #22c55e;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+.bariatria-point.selected:hover,
+.bariatria-point.selected.hovered {
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.5);
+}
+
+.bariatria-point svg {
+  color: white;
+}
+
+.bariatria-tooltip {
+  position: absolute;
+  background: #1a202c;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  transform: translateX(-50%);
+}
+
+.bariatria-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1a202c;
+}
+
+.bariatria-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.bariatria-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.bariatria-legend .legend-item:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.bariatria-legend .legend-item.selected {
+  background: linear-gradient(135deg, #f0fff4 0%, #f8fafc 100%);
+  border-color: #22c55e;
+}
+
+.bariatria-legend .legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bariatria-legend .legend-text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.bariatria-legend .legend-check {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.bariatria-view .procedures-header {
+  border-bottom: none;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.bariatria-view .procedures-header-info {
+  text-align: center;
+  width: 100%;
+}
+
+/* Responsive para Bariatria */
+@media (max-width: 600px) {
+  .bariatria-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .bariatria-image-wrapper {
     max-width: 280px;
   }
 }

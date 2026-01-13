@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Check, X, ChevronLeft } from 'lucide-react';
 import { surgeries, formatDuration, getSizeLabel, getCategories } from '../../data/surgeries';
 import facialImage from '../../assets/images/facial.png';
+import corporalImage from '../../assets/images/corporal.png';
+import bariatriaImage from '../../assets/images/bariatria.png';
 import './SurgerySelector.css';
 
 // Mapeo de cirugías faciales a puntos en el rostro (posiciones en porcentaje basadas en la imagen)
@@ -16,6 +18,35 @@ const facialSurgeryPoints = {
   'lip-augmentation': { x: 50, y: 58, surgeryId: 'lip-augmentation', label: 'Aumento de Labios' }, // Labios
   'mentoplasty': { x: 50, y: 68, surgeryId: 'mentoplasty', label: 'Mentoplastia' },                 // Mentón
   'otoplasty': { x: 80, y: 42, surgeryId: 'otoplasty', label: 'Otoplastia' },                       // Oreja derecha
+};
+
+// Mapeo de cirugías corporales a puntos en el cuerpo (posiciones en porcentaje basadas en la imagen)
+const corporalSurgeryPoints = {
+  'breast-augmentation-left': { x: 35, y: 26, surgeryId: 'breast-augmentation', label: 'Aumento de Busto' },  // Seno izquierdo
+  'breast-augmentation-right': { x: 65, y: 26, surgeryId: 'breast-augmentation', label: 'Aumento de Busto' }, // Seno derecho
+  'breast-lift-left': { x: 35, y: 30, surgeryId: 'breast-lift', label: 'Mastopexia' },                       // Seno izquierdo (mastopexia)
+  'breast-lift-right': { x: 65, y: 30, surgeryId: 'breast-lift', label: 'Mastopexia' },                      // Seno derecho (mastopexia)
+  'breast-reduction-left': { x: 35, y: 28, surgeryId: 'breast-reduction', label: 'Reducción Mamaria' },      // Seno izquierdo (reducción)
+  'breast-reduction-right': { x: 65, y: 28, surgeryId: 'breast-reduction', label: 'Reducción Mamaria' },     // Seno derecho (reducción)
+  'abdominoplasty': { x: 50, y: 48, surgeryId: 'abdominoplasty', label: 'Abdominoplastia' },                 // Abdomen
+  'liposuction-abdomen': { x: 50, y: 45, surgeryId: 'liposuction', label: 'Liposucción' },                   // Abdomen (lipo)
+  'liposuction-waist-left': { x: 30, y: 48, surgeryId: 'liposuction', label: 'Liposucción' },                // Cintura izquierda
+  'liposuction-waist-right': { x: 70, y: 48, surgeryId: 'liposuction', label: 'Liposucción' },               // Cintura derecha
+  'bbl': { x: 50, y: 65, surgeryId: 'bbl', label: 'BBL (Brazilian Butt Lift)' },                             // Glúteos
+  'arm-lift-left': { x: 18, y: 35, surgeryId: 'arm-lift', label: 'Braquioplastia' },                         // Brazo izquierdo
+  'arm-lift-right': { x: 82, y: 35, surgeryId: 'arm-lift', label: 'Braquioplastia' },                        // Brazo derecho
+  'thigh-lift-left': { x: 40, y: 80, surgeryId: 'thigh-lift', label: 'Lifting de Muslos' },                  // Muslo izquierdo
+  'thigh-lift-right': { x: 60, y: 80, surgeryId: 'thigh-lift', label: 'Lifting de Muslos' },                 // Muslo derecho
+};
+
+// Mapeo de cirugías bariátricas a puntos en el abdomen (posiciones en porcentaje basadas en la imagen)
+const bariatriaSurgeryPoints = {
+  'gastric-balloon': { x: 50, y: 45, surgeryId: 'gastric-balloon', label: 'Balón Gástrico' },                // Estómago superior
+  'gastric-band': { x: 50, y: 48, surgeryId: 'gastric-band', label: 'Banda Gástrica' },                      // Estómago medio
+  'gastric-sleeve': { x: 45, y: 50, surgeryId: 'gastric-sleeve', label: 'Manga Gástrica' },                  // Estómago izquierdo
+  'gastric-bypass': { x: 55, y: 50, surgeryId: 'gastric-bypass', label: 'Bypass Gástrico' },                 // Estómago derecho
+  'duodenal-switch': { x: 50, y: 55, surgeryId: 'duodenal-switch', label: 'Derivación Biliopancreática' },   // Abdomen inferior
+  'revisional-bariatric': { x: 50, y: 52, surgeryId: 'revisional-bariatric', label: 'Cirugía Revisional' }, // Centro abdomen
 };
 
 // Componente interactivo para Facial usando la imagen real
@@ -124,100 +155,197 @@ const FacialInteractive = ({ selectedProcedures, onToggleSurgery, surgeries: fac
   );
 };
 
+// Componente interactivo para Corporal usando la imagen real
+const CorporalInteractive = ({ selectedProcedures, onToggleSurgery, surgeries: corporalSurgeries }) => {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  const isSelected = (surgeryId) => selectedProcedures.some(p => p.id === surgeryId);
+
+  const getSurgeryByPoint = (pointKey) => {
+    const point = corporalSurgeryPoints[pointKey];
+    if (!point) return null;
+    return corporalSurgeries.find(s => s.id === point.surgeryId);
+  };
+
+  const handlePointClick = (pointKey) => {
+    const surgery = getSurgeryByPoint(pointKey);
+    if (surgery) {
+      onToggleSurgery(surgery);
+    }
+  };
+
+  return (
+    <div className="corporal-interactive-container">
+      <div className="corporal-image-wrapper">
+        <img src={corporalImage} alt="Corporal procedures" className="corporal-image" />
+
+        {/* Puntos interactivos superpuestos sobre la imagen */}
+        {Object.entries(corporalSurgeryPoints).map(([key, point]) => {
+          const surgery = getSurgeryByPoint(key);
+          const selected = surgery && isSelected(surgery.id);
+          const isHovered = hoveredPoint === key;
+
+          return (
+            <div
+              key={key}
+              className={`corporal-point ${selected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`}
+              style={{
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+              }}
+              onClick={() => handlePointClick(key)}
+              onMouseEnter={() => setHoveredPoint(key)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              {selected && <Check size={10} />}
+            </div>
+          );
+        })}
+
+        {/* Tooltip para puntos */}
+        {hoveredPoint && (
+          <div
+            className="corporal-tooltip"
+            style={{
+              left: `${corporalSurgeryPoints[hoveredPoint].x}%`,
+              top: `${corporalSurgeryPoints[hoveredPoint].y - 12}%`,
+            }}
+          >
+            {getSurgeryByPoint(hoveredPoint)?.name || corporalSurgeryPoints[hoveredPoint]?.label}
+          </div>
+        )}
+      </div>
+
+      {/* Leyenda de cirugías */}
+      <div className="corporal-legend">
+        {corporalSurgeries.map(surgery => (
+          <div
+            key={surgery.id}
+            className={`legend-item ${isSelected(surgery.id) ? 'selected' : ''}`}
+            onClick={() => onToggleSurgery(surgery)}
+          >
+            <span className="legend-dot" style={{
+              background: isSelected(surgery.id) ? '#22c55e' : '#3b82f6'
+            }} />
+            <span className="legend-text">{surgery.name}</span>
+            {isSelected(surgery.id) && <Check size={14} className="legend-check" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Componente interactivo para Bariatría usando la imagen real
+const BariatriaInteractive = ({ selectedProcedures, onToggleSurgery, surgeries: bariatriaSurgeries }) => {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  const isSelected = (surgeryId) => selectedProcedures.some(p => p.id === surgeryId);
+
+  const getSurgeryByPoint = (pointKey) => {
+    const point = bariatriaSurgeryPoints[pointKey];
+    if (!point) return null;
+    return bariatriaSurgeries.find(s => s.id === point.surgeryId);
+  };
+
+  const handlePointClick = (pointKey) => {
+    const surgery = getSurgeryByPoint(pointKey);
+    if (surgery) {
+      onToggleSurgery(surgery);
+    }
+  };
+
+  return (
+    <div className="bariatria-interactive-container">
+      <div className="bariatria-image-wrapper">
+        <img src={bariatriaImage} alt="Bariatria procedures" className="bariatria-image" />
+
+        {/* Puntos interactivos superpuestos sobre la imagen */}
+        {Object.entries(bariatriaSurgeryPoints).map(([key, point]) => {
+          const surgery = getSurgeryByPoint(key);
+          const selected = surgery && isSelected(surgery.id);
+          const isHovered = hoveredPoint === key;
+
+          return (
+            <div
+              key={key}
+              className={`bariatria-point ${selected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`}
+              style={{
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+              }}
+              onClick={() => handlePointClick(key)}
+              onMouseEnter={() => setHoveredPoint(key)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              {selected && <Check size={10} />}
+            </div>
+          );
+        })}
+
+        {/* Tooltip para puntos */}
+        {hoveredPoint && (
+          <div
+            className="bariatria-tooltip"
+            style={{
+              left: `${bariatriaSurgeryPoints[hoveredPoint].x}%`,
+              top: `${bariatriaSurgeryPoints[hoveredPoint].y - 12}%`,
+            }}
+          >
+            {getSurgeryByPoint(hoveredPoint)?.name || bariatriaSurgeryPoints[hoveredPoint]?.label}
+          </div>
+        )}
+      </div>
+
+      {/* Leyenda de cirugías */}
+      <div className="bariatria-legend">
+        {bariatriaSurgeries.map(surgery => (
+          <div
+            key={surgery.id}
+            className={`legend-item ${isSelected(surgery.id) ? 'selected' : ''}`}
+            onClick={() => onToggleSurgery(surgery)}
+          >
+            <span className="legend-dot" style={{
+              background: isSelected(surgery.id) ? '#22c55e' : '#3b82f6'
+            }} />
+            <span className="legend-text">{surgery.name}</span>
+            {isSelected(surgery.id) && <Check size={14} className="legend-check" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Componente de imagen para Facial (tarjeta)
 const FacialIcon = () => (
   <img src={facialImage} alt="Facial" className="category-image" />
 );
 
-// SVG Componente para Corporal (torso femenino)
+// Componente de imagen para Corporal (tarjeta)
 const CorporalIcon = () => (
-  <svg viewBox="0 0 100 100" className="category-svg">
-    <defs>
-      <linearGradient id="corporalStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#B8860B" />
-        <stop offset="100%" stopColor="#8B6914" />
-      </linearGradient>
-    </defs>
-    {/* Cuello */}
-    <path d="M42 5 L42 15" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M58 5 L58 15" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-
-    {/* Hombros y torso superior */}
-    <path d="M42 15 Q30 18 15 25 Q10 28 8 35" fill="none" stroke="url(#corporalStroke)" strokeWidth="2.5" strokeLinecap="round"/>
-    <path d="M58 15 Q70 18 85 25 Q90 28 92 35" fill="none" stroke="url(#corporalStroke)" strokeWidth="2.5" strokeLinecap="round"/>
-
-    {/* Brazos (parciales) */}
-    <path d="M8 35 Q5 45 3 55" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M92 35 Q95 45 97 55" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-
-    {/* Pecho */}
-    <path d="M25 35 Q20 50 30 55 Q40 58 45 50" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M75 35 Q80 50 70 55 Q60 58 55 50" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-
-    {/* Línea central del torso */}
-    <path d="M50 20 L50 95" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="3,3"/>
-
-    {/* Cintura */}
-    <path d="M30 60 Q25 75 30 90" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M70 60 Q75 75 70 90" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
-
-    {/* Marcas de procedimiento */}
-    <ellipse cx="35" cy="48" rx="8" ry="6" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="2,2"/>
-    <ellipse cx="65" cy="48" rx="8" ry="6" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="2,2"/>
-  </svg>
+  <img src={corporalImage} alt="Corporal" className="category-image" />
 );
 
-// SVG Componente para Bariatría (abdomen/cintura)
+// Componente de imagen para Bariatría (tarjeta)
 const BariatriaIcon = () => (
-  <svg viewBox="0 0 100 100" className="category-svg">
-    <defs>
-      <linearGradient id="bariatriaStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#B8860B" />
-        <stop offset="100%" stopColor="#8B6914" />
-      </linearGradient>
-    </defs>
-    {/* Cintura */}
-    <path d="M25 10 Q20 25 22 40 Q25 55 30 70 Q32 80 35 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2.5" strokeLinecap="round"/>
-    <path d="M75 10 Q80 25 78 40 Q75 55 70 70 Q68 80 65 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2.5" strokeLinecap="round"/>
-
-    {/* Ombligo */}
-    <ellipse cx="50" cy="45" rx="3" ry="4" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1.5"/>
-
-    {/* Línea del bikini/ropa interior */}
-    <path d="M30 70 Q40 75 50 73 Q60 75 70 70" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2" strokeLinecap="round"/>
-    <path d="M35 90 Q50 95 65 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2" strokeLinecap="round"/>
-
-    {/* Estrellas/destellos decorativos */}
-    <g transform="translate(15, 30)">
-      <path d="M0 -5 L1.5 -1.5 L5 0 L1.5 1.5 L0 5 L-1.5 1.5 L-5 0 L-1.5 -1.5 Z" fill="url(#bariatriaStroke)"/>
-    </g>
-    <g transform="translate(85, 25)">
-      <path d="M0 -4 L1.2 -1.2 L4 0 L1.2 1.2 L0 4 L-1.2 1.2 L-4 0 L-1.2 -1.2 Z" fill="url(#bariatriaStroke)"/>
-    </g>
-    <g transform="translate(80, 55)">
-      <path d="M0 -3 L0.9 -0.9 L3 0 L0.9 0.9 L0 3 L-0.9 0.9 L-3 0 L-0.9 -0.9 Z" fill="url(#bariatriaStroke)"/>
-    </g>
-
-    {/* Líneas de contorno del abdomen */}
-    <path d="M35 25 Q50 22 65 25" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1" strokeDasharray="2,2"/>
-    <path d="M38 55 Q50 58 62 55" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1" strokeDasharray="2,2"/>
-  </svg>
+  <img src={bariatriaImage} alt="Bariatría" className="category-image" />
 );
 
 // Configuración de categorías
 const categoryConfig = {
   'Facial': {
-    color: '#B8860B',
+    color: '#3b82f6',
     Icon: FacialIcon,
     description: 'Procedimientos para rostro y cabeza'
   },
   'Corporal': {
-    color: '#B8860B',
+    color: '#3b82f6',
     Icon: CorporalIcon,
     description: 'Procedimientos para el cuerpo'
   },
   'Bariatría': {
-    color: '#B8860B',
+    color: '#3b82f6',
     Icon: BariatriaIcon,
     description: 'Cirugías para pérdida de peso'
   }
@@ -317,6 +445,58 @@ const SurgerySelector = ({ selectedProcedures, onSelect }) => {
               selectedProcedures={selectedProcedures}
               onToggleSurgery={handleProcedureToggle}
               surgeries={getCategoryProcedures('Facial')}
+            />
+          </motion.div>
+        ) : activeCategory === 'Corporal' ? (
+          <motion.div
+            className="procedures-view corporal-view"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            key="corporal-procedures"
+          >
+            <button className="back-button" onClick={() => setActiveCategory(null)}>
+              <ChevronLeft size={20} />
+              <span>Volver a categorías</span>
+            </button>
+
+            <div className="procedures-header">
+              <div className="procedures-header-info">
+                <h3>Corporal</h3>
+                <p>Toca los puntos en el cuerpo para seleccionar procedimientos</p>
+              </div>
+            </div>
+
+            <CorporalInteractive
+              selectedProcedures={selectedProcedures}
+              onToggleSurgery={handleProcedureToggle}
+              surgeries={getCategoryProcedures('Corporal')}
+            />
+          </motion.div>
+        ) : activeCategory === 'Bariatría' ? (
+          <motion.div
+            className="procedures-view bariatria-view"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            key="bariatria-procedures"
+          >
+            <button className="back-button" onClick={() => setActiveCategory(null)}>
+              <ChevronLeft size={20} />
+              <span>Volver a categorías</span>
+            </button>
+
+            <div className="procedures-header">
+              <div className="procedures-header-info">
+                <h3>Bariatría</h3>
+                <p>Toca los puntos en el abdomen para seleccionar procedimientos</p>
+              </div>
+            </div>
+
+            <BariatriaInteractive
+              selectedProcedures={selectedProcedures}
+              onToggleSurgery={handleProcedureToggle}
+              surgeries={getCategoryProcedures('Bariatría')}
             />
           </motion.div>
         ) : (
