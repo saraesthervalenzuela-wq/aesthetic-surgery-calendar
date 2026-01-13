@@ -1,121 +1,230 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Check, X } from 'lucide-react';
+import { Clock, Check, X, ChevronLeft } from 'lucide-react';
 import { surgeries, formatDuration, getSizeLabel, getCategories } from '../../data/surgeries';
+import facialImage from '../../assets/images/facial.png';
 import './SurgerySelector.css';
+
+// Mapeo de cirugías faciales a puntos en el rostro (posiciones en porcentaje basadas en la imagen)
+// IDs corresponden a los IDs en surgeries.js
+const facialSurgeryPoints = {
+  'blepharoplasty-left': { x: 37, y: 37, surgeryId: 'blepharoplasty', label: 'Blefaroplastia' },    // Ojo izquierdo
+  'blepharoplasty-right': { x: 63, y: 37, surgeryId: 'blepharoplasty', label: 'Blefaroplastia' },   // Ojo derecho
+  'rhinoplasty': { x: 50, y: 48, surgeryId: 'rhinoplasty', label: 'Rinoplastia' },                  // Nariz
+  'bichectomy-left': { x: 30, y: 50, surgeryId: 'bichectomy', label: 'Bichectomía' },               // Mejilla izquierda
+  'bichectomy-right': { x: 70, y: 50, surgeryId: 'bichectomy', label: 'Bichectomía' },              // Mejilla derecha
+  'lip-augmentation': { x: 50, y: 58, surgeryId: 'lip-augmentation', label: 'Aumento de Labios' }, // Labios
+  'mentoplasty': { x: 50, y: 68, surgeryId: 'mentoplasty', label: 'Mentoplastia' },                 // Mentón
+  'otoplasty': { x: 80, y: 42, surgeryId: 'otoplasty', label: 'Otoplastia' },                       // Oreja derecha
+};
+
+// Componente interactivo para Facial usando la imagen real
+const FacialInteractive = ({ selectedProcedures, onToggleSurgery, surgeries: facialSurgeries }) => {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [hoveredLifting, setHoveredLifting] = useState(false);
+
+  const isSelected = (surgeryId) => selectedProcedures.some(p => p.id === surgeryId);
+
+  const getSurgeryByPoint = (pointKey) => {
+    const point = facialSurgeryPoints[pointKey];
+    if (!point) return null;
+    return facialSurgeries.find(s => s.id === point.surgeryId);
+  };
+
+  const handlePointClick = (pointKey) => {
+    const surgery = getSurgeryByPoint(pointKey);
+    if (surgery) {
+      onToggleSurgery(surgery);
+    }
+  };
+
+  const handleLiftingClick = () => {
+    const liftingSurgery = facialSurgeries.find(s => s.id === 'facelift');
+    if (liftingSurgery) {
+      onToggleSurgery(liftingSurgery);
+    }
+  };
+
+  const isLiftingSelected = isSelected('facelift');
+
+  return (
+    <div className="facial-interactive-container">
+      <div className="facial-image-wrapper">
+        <img src={facialImage} alt="Facial procedures" className="facial-image" />
+
+        {/* Círculo para Lifting Facial */}
+        <div
+          className={`facial-lifting-circle ${isLiftingSelected ? 'selected' : ''} ${hoveredLifting ? 'hovered' : ''}`}
+          onClick={handleLiftingClick}
+          onMouseEnter={() => setHoveredLifting(true)}
+          onMouseLeave={() => setHoveredLifting(false)}
+        />
+
+        {/* Tooltip para Lifting */}
+        {hoveredLifting && (
+          <div className="facial-tooltip lifting-tooltip">
+            Lifting Facial
+          </div>
+        )}
+
+        {/* Puntos interactivos superpuestos (transparentes, sobre los puntos de la imagen) */}
+        {Object.entries(facialSurgeryPoints).map(([key, point]) => {
+          const surgery = getSurgeryByPoint(key);
+          const selected = surgery && isSelected(surgery.id);
+          const isHovered = hoveredPoint === key;
+
+          return (
+            <div
+              key={key}
+              className={`facial-point ${selected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`}
+              style={{
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+              }}
+              onClick={() => handlePointClick(key)}
+              onMouseEnter={() => setHoveredPoint(key)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              {selected && <Check size={10} />}
+            </div>
+          );
+        })}
+
+        {/* Tooltip para puntos */}
+        {hoveredPoint && (
+          <div
+            className="facial-tooltip"
+            style={{
+              left: `${facialSurgeryPoints[hoveredPoint].x}%`,
+              top: `${facialSurgeryPoints[hoveredPoint].y - 12}%`,
+            }}
+          >
+            {getSurgeryByPoint(hoveredPoint)?.name || facialSurgeryPoints[hoveredPoint]?.label}
+          </div>
+        )}
+      </div>
+
+      {/* Leyenda de cirugías */}
+      <div className="facial-legend">
+        {facialSurgeries.map(surgery => (
+          <div
+            key={surgery.id}
+            className={`legend-item ${isSelected(surgery.id) ? 'selected' : ''}`}
+            onClick={() => onToggleSurgery(surgery)}
+          >
+            <span className="legend-dot" style={{
+              background: isSelected(surgery.id) ? '#22c55e' : '#3b82f6'
+            }} />
+            <span className="legend-text">{surgery.name}</span>
+            {isSelected(surgery.id) && <Check size={14} className="legend-check" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Componente de imagen para Facial (tarjeta)
+const FacialIcon = () => (
+  <img src={facialImage} alt="Facial" className="category-image" />
+);
+
+// SVG Componente para Corporal (torso femenino)
+const CorporalIcon = () => (
+  <svg viewBox="0 0 100 100" className="category-svg">
+    <defs>
+      <linearGradient id="corporalStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#B8860B" />
+        <stop offset="100%" stopColor="#8B6914" />
+      </linearGradient>
+    </defs>
+    {/* Cuello */}
+    <path d="M42 5 L42 15" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M58 5 L58 15" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+
+    {/* Hombros y torso superior */}
+    <path d="M42 15 Q30 18 15 25 Q10 28 8 35" fill="none" stroke="url(#corporalStroke)" strokeWidth="2.5" strokeLinecap="round"/>
+    <path d="M58 15 Q70 18 85 25 Q90 28 92 35" fill="none" stroke="url(#corporalStroke)" strokeWidth="2.5" strokeLinecap="round"/>
+
+    {/* Brazos (parciales) */}
+    <path d="M8 35 Q5 45 3 55" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M92 35 Q95 45 97 55" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+
+    {/* Pecho */}
+    <path d="M25 35 Q20 50 30 55 Q40 58 45 50" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M75 35 Q80 50 70 55 Q60 58 55 50" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+
+    {/* Línea central del torso */}
+    <path d="M50 20 L50 95" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="3,3"/>
+
+    {/* Cintura */}
+    <path d="M30 60 Q25 75 30 90" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M70 60 Q75 75 70 90" fill="none" stroke="url(#corporalStroke)" strokeWidth="2" strokeLinecap="round"/>
+
+    {/* Marcas de procedimiento */}
+    <ellipse cx="35" cy="48" rx="8" ry="6" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="2,2"/>
+    <ellipse cx="65" cy="48" rx="8" ry="6" fill="none" stroke="url(#corporalStroke)" strokeWidth="1" strokeDasharray="2,2"/>
+  </svg>
+);
+
+// SVG Componente para Bariatría (abdomen/cintura)
+const BariatriaIcon = () => (
+  <svg viewBox="0 0 100 100" className="category-svg">
+    <defs>
+      <linearGradient id="bariatriaStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#B8860B" />
+        <stop offset="100%" stopColor="#8B6914" />
+      </linearGradient>
+    </defs>
+    {/* Cintura */}
+    <path d="M25 10 Q20 25 22 40 Q25 55 30 70 Q32 80 35 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2.5" strokeLinecap="round"/>
+    <path d="M75 10 Q80 25 78 40 Q75 55 70 70 Q68 80 65 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2.5" strokeLinecap="round"/>
+
+    {/* Ombligo */}
+    <ellipse cx="50" cy="45" rx="3" ry="4" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1.5"/>
+
+    {/* Línea del bikini/ropa interior */}
+    <path d="M30 70 Q40 75 50 73 Q60 75 70 70" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M35 90 Q50 95 65 90" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="2" strokeLinecap="round"/>
+
+    {/* Estrellas/destellos decorativos */}
+    <g transform="translate(15, 30)">
+      <path d="M0 -5 L1.5 -1.5 L5 0 L1.5 1.5 L0 5 L-1.5 1.5 L-5 0 L-1.5 -1.5 Z" fill="url(#bariatriaStroke)"/>
+    </g>
+    <g transform="translate(85, 25)">
+      <path d="M0 -4 L1.2 -1.2 L4 0 L1.2 1.2 L0 4 L-1.2 1.2 L-4 0 L-1.2 -1.2 Z" fill="url(#bariatriaStroke)"/>
+    </g>
+    <g transform="translate(80, 55)">
+      <path d="M0 -3 L0.9 -0.9 L3 0 L0.9 0.9 L0 3 L-0.9 0.9 L-3 0 L-0.9 -0.9 Z" fill="url(#bariatriaStroke)"/>
+    </g>
+
+    {/* Líneas de contorno del abdomen */}
+    <path d="M35 25 Q50 22 65 25" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1" strokeDasharray="2,2"/>
+    <path d="M38 55 Q50 58 62 55" fill="none" stroke="url(#bariatriaStroke)" strokeWidth="1" strokeDasharray="2,2"/>
+  </svg>
+);
 
 // Configuración de categorías
 const categoryConfig = {
   'Facial': {
-    color: '#E67E8C',
-    gradient: 'linear-gradient(135deg, #E67E8C 0%, #D4666F 100%)',
+    color: '#B8860B',
+    Icon: FacialIcon,
     description: 'Procedimientos para rostro y cabeza'
   },
   'Corporal': {
-    color: '#8B5A8C',
-    gradient: 'linear-gradient(135deg, #8B5A8C 0%, #6B4A6C 100%)',
+    color: '#B8860B',
+    Icon: CorporalIcon,
     description: 'Procedimientos para el cuerpo'
   },
   'Bariatría': {
-    color: '#5A8B8C',
-    gradient: 'linear-gradient(135deg, #5A8B8C 0%, #4A6B6C 100%)',
+    color: '#B8860B',
+    Icon: BariatriaIcon,
     description: 'Cirugías para pérdida de peso'
   }
 };
 
-// Componente SVG del cuerpo con zonas interactivas
-const InteractiveBody = ({ activeCategory, hoveredCategory, onCategoryClick, onCategoryHover, getSelectedCount }) => {
-  return (
-    <svg viewBox="0 0 200 400" className="interactive-body-svg">
-      {/* Definiciones de gradientes */}
-      <defs>
-        <linearGradient id="facialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#E67E8C" />
-          <stop offset="100%" stopColor="#D4666F" />
-        </linearGradient>
-        <linearGradient id="corporalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8B5A8C" />
-          <stop offset="100%" stopColor="#6B4A6C" />
-        </linearGradient>
-        <linearGradient id="bariatricGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#5A8B8C" />
-          <stop offset="100%" stopColor="#4A6B6C" />
-        </linearGradient>
-      </defs>
-
-      {/* ZONA FACIAL - Cabeza y cuello */}
-      <g
-        className={`body-zone facial-zone ${activeCategory === 'Facial' ? 'active' : ''} ${hoveredCategory === 'Facial' ? 'hovered' : ''}`}
-        onClick={() => onCategoryClick('Facial')}
-        onMouseEnter={() => onCategoryHover('Facial')}
-        onMouseLeave={() => onCategoryHover(null)}
-      >
-        <ellipse cx="100" cy="45" rx="32" ry="38" className="zone-shape" />
-        <ellipse cx="65" cy="45" rx="6" ry="12" className="zone-shape" />
-        <ellipse cx="135" cy="45" rx="6" ry="12" className="zone-shape" />
-        <rect x="85" y="80" width="30" height="25" rx="8" className="zone-shape" />
-        <circle cx="88" cy="38" r="4" className="zone-detail" />
-        <circle cx="112" cy="38" r="4" className="zone-detail" />
-        <ellipse cx="100" cy="52" rx="4" ry="5" className="zone-detail" />
-        <path d="M90 65 Q100 72 110 65" className="zone-detail" fill="none" strokeWidth="2" />
-        <text x="100" y="20" className="zone-label">FACIAL</text>
-        {getSelectedCount('Facial') > 0 && (
-          <g className="selection-badge" transform="translate(130, 25)">
-            <circle r="12" fill="#4ecca3" />
-            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Facial')}</text>
-          </g>
-        )}
-      </g>
-
-      {/* ZONA CORPORAL - Torso, brazos y piernas */}
-      <g
-        className={`body-zone corporal-zone ${activeCategory === 'Corporal' ? 'active' : ''} ${hoveredCategory === 'Corporal' ? 'hovered' : ''}`}
-        onClick={() => onCategoryClick('Corporal')}
-        onMouseEnter={() => onCategoryHover('Corporal')}
-        onMouseLeave={() => onCategoryHover(null)}
-      >
-        <path d="M60 105 Q50 110 45 130 L45 145 L155 145 L155 130 Q150 110 140 105 Z" className="zone-shape" />
-        <path d="M45 130 Q30 140 25 170 L22 220 Q20 235 28 238 L38 238 Q45 235 43 220 L48 175 Q50 155 50 145" className="zone-shape" />
-        <path d="M155 130 Q170 140 175 170 L178 220 Q180 235 172 238 L162 238 Q155 235 157 220 L152 175 Q150 155 150 145" className="zone-shape" />
-        <ellipse cx="80" cy="135" rx="12" ry="10" className="zone-detail-light" />
-        <ellipse cx="120" cy="135" rx="12" ry="10" className="zone-detail-light" />
-        <path d="M55 200 L55 240 Q55 250 65 255 L65 255 L135 255 Q145 250 145 240 L145 200" className="zone-shape" />
-        <path d="M65 255 L60 320 L55 370 Q53 385 62 388 L82 388 Q90 385 88 370 L90 320 L95 255" className="zone-shape" />
-        <path d="M105 255 L110 320 L112 370 Q114 385 118 388 L138 388 Q147 385 145 370 L140 320 L135 255" className="zone-shape" />
-        <text x="100" y="280" className="zone-label">CORPORAL</text>
-        {getSelectedCount('Corporal') > 0 && (
-          <g className="selection-badge" transform="translate(155, 120)">
-            <circle r="12" fill="#4ecca3" />
-            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Corporal')}</text>
-          </g>
-        )}
-      </g>
-
-      {/* ZONA BARIÁTRICA - Abdomen/Estómago */}
-      <g
-        className={`body-zone bariatric-zone ${activeCategory === 'Bariatría' ? 'active' : ''} ${hoveredCategory === 'Bariatría' ? 'hovered' : ''}`}
-        onClick={() => onCategoryClick('Bariatría')}
-        onMouseEnter={() => onCategoryHover('Bariatría')}
-        onMouseLeave={() => onCategoryHover(null)}
-      >
-        <ellipse cx="100" cy="175" rx="42" ry="30" className="zone-shape" />
-        <path d="M85 165 Q100 155 115 165" className="zone-detail" fill="none" strokeWidth="2" />
-        <ellipse cx="100" cy="178" rx="15" ry="10" className="zone-detail" fill="none" strokeWidth="1.5" />
-        <text x="100" y="210" className="zone-label-small">BARIATRÍA</text>
-        {getSelectedCount('Bariatría') > 0 && (
-          <g className="selection-badge" transform="translate(145, 160)">
-            <circle r="12" fill="#4ecca3" />
-            <text y="4" fill="white" fontSize="10" fontWeight="bold">{getSelectedCount('Bariatría')}</text>
-          </g>
-        )}
-      </g>
-    </svg>
-  );
-};
-
 const SurgerySelector = ({ selectedProcedures, onSelect }) => {
   const [activeCategory, setActiveCategory] = useState(null);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
 
   const isSelected = (surgeryId) => {
     return selectedProcedures.some(p => p.id === surgeryId);
@@ -137,146 +246,148 @@ const SurgerySelector = ({ selectedProcedures, onSelect }) => {
     return selectedProcedures.filter(p => p.category === category).length;
   };
 
-  const displayCategory = hoveredCategory || activeCategory;
-  const displayConfig = displayCategory ? categoryConfig[displayCategory] : null;
-
   return (
     <div className="surgery-selector">
       <div className="selector-header">
         <h2>Selecciona tus Procedimientos</h2>
-        <p>Haz clic en una zona del cuerpo para ver los procedimientos disponibles</p>
+        <p>Elige una categoría para ver los procedimientos disponibles</p>
       </div>
 
-      <div className="body-selector-main">
-        {/* Panel del cuerpo interactivo */}
-        <div className="body-visual-panel">
-          <InteractiveBody
-            activeCategory={activeCategory}
-            hoveredCategory={hoveredCategory}
-            onCategoryClick={setActiveCategory}
-            onCategoryHover={setHoveredCategory}
-            getSelectedCount={getSelectedCountInCategory}
-          />
+      <AnimatePresence mode="wait">
+        {!activeCategory ? (
+          <motion.div
+            className="categories-grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            key="categories"
+          >
+            {getCategories().map((category, index) => {
+              const config = categoryConfig[category];
+              const selectedCount = getSelectedCountInCategory(category);
+              const IconComponent = config.Icon;
 
-          {/* Indicador de zona */}
-          <AnimatePresence>
-            {displayCategory && (
-              <motion.div
-                className="zone-indicator"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                style={{ background: displayConfig?.gradient }}
-              >
-                <span className="zone-name">{displayCategory}</span>
-                <span className="zone-desc">{displayConfig?.description}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              return (
+                <motion.div
+                  key={category}
+                  className={`category-card ${selectedCount > 0 ? 'has-selection' : ''}`}
+                  onClick={() => setActiveCategory(category)}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="category-icon-wrapper">
+                    <IconComponent />
+                    {selectedCount > 0 && (
+                      <div className="category-badge">{selectedCount}</div>
+                    )}
+                  </div>
+                  <h3 className="category-title">{category}</h3>
+                  <p className="category-description">{config.description}</p>
+                  <span className="category-count">
+                    {getCategoryProcedures(category).length} procedimientos
+                  </span>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : activeCategory === 'Facial' ? (
+          <motion.div
+            className="procedures-view facial-view"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            key="facial-procedures"
+          >
+            <button className="back-button" onClick={() => setActiveCategory(null)}>
+              <ChevronLeft size={20} />
+              <span>Volver a categorías</span>
+            </button>
 
-          {/* Leyenda */}
-          <div className="body-legend">
-            <div className="legend-title">Zonas:</div>
-            {getCategories().map(cat => (
-              <div
-                key={cat}
-                className={`legend-item ${activeCategory === cat ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat)}
-              >
-                <span className="legend-color" style={{ background: categoryConfig[cat]?.color }} />
-                <span className="legend-text">{cat}</span>
-                {getSelectedCountInCategory(cat) > 0 && (
-                  <span className="legend-count">{getSelectedCountInCategory(cat)}</span>
-                )}
+            <div className="procedures-header">
+              <div className="procedures-header-info">
+                <h3>Facial</h3>
+                <p>Toca los puntos en el rostro para seleccionar procedimientos</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Panel de procedimientos */}
-        <AnimatePresence mode="wait">
-          {activeCategory ? (
-            <motion.div
-              className="procedures-panel"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              key={activeCategory}
-              style={{ '--panel-color': categoryConfig[activeCategory]?.color }}
-            >
-              <div className="panel-header" style={{ background: categoryConfig[activeCategory]?.gradient }}>
+            <FacialInteractive
+              selectedProcedures={selectedProcedures}
+              onToggleSurgery={handleProcedureToggle}
+              surgeries={getCategoryProcedures('Facial')}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            className="procedures-view"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            key="procedures"
+          >
+            <button className="back-button" onClick={() => setActiveCategory(null)}>
+              <ChevronLeft size={20} />
+              <span>Volver a categorías</span>
+            </button>
+
+            <div className="procedures-header">
+              <div className="procedures-header-icon">
+                {React.createElement(categoryConfig[activeCategory].Icon)}
+              </div>
+              <div className="procedures-header-info">
                 <h3>{activeCategory}</h3>
-                <span>{categoryConfig[activeCategory]?.description}</span>
-                <span className="procedure-count">
-                  {getCategoryProcedures(activeCategory).length} procedimientos
-                </span>
+                <p>{categoryConfig[activeCategory].description}</p>
               </div>
+            </div>
 
-              <div className="panel-procedures">
-                {getCategoryProcedures(activeCategory).map((surgery) => {
-                  const selected = isSelected(surgery.id);
+            <div className="procedures-list">
+              {getCategoryProcedures(activeCategory).map((surgery) => {
+                const selected = isSelected(surgery.id);
 
-                  return (
-                    <motion.div
-                      key={surgery.id}
-                      className={`procedure-card ${selected ? 'selected' : ''}`}
-                      onClick={() => handleProcedureToggle(surgery)}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      <div className="procedure-icon">{surgery.icon}</div>
-                      <div className="procedure-details">
-                        <h4>{surgery.name}</h4>
-                        <p>{surgery.description}</p>
-                        <div className="procedure-meta">
-                          <span className="duration">
-                            <Clock size={12} />
-                            {formatDuration(surgery.duration)}
-                          </span>
-                          <span className={`size size-${surgery.size}`}>
-                            {getSizeLabel(surgery.size)}
-                          </span>
-                        </div>
+                return (
+                  <motion.div
+                    key={surgery.id}
+                    className={`procedure-card ${selected ? 'selected' : ''}`}
+                    onClick={() => handleProcedureToggle(surgery)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <div className="procedure-icon">{surgery.icon}</div>
+                    <div className="procedure-details">
+                      <h4>{surgery.name}</h4>
+                      <p>{surgery.description}</p>
+                      <div className="procedure-meta">
+                        <span className="duration">
+                          <Clock size={12} />
+                          {formatDuration(surgery.duration)}
+                        </span>
+                        <span className={`size size-${surgery.size}`}>
+                          {getSizeLabel(surgery.size)}
+                        </span>
                       </div>
-                      <div className="procedure-checkbox">
-                        {selected ? (
-                          <motion.div
-                            className="checkbox-checked"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                          >
-                            <Check size={14} />
-                          </motion.div>
-                        ) : (
-                          <div className="checkbox-empty" />
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              className="procedures-panel empty-panel"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="empty-panel-content">
-                <div className="empty-icon">👆</div>
-                <h3>Selecciona una zona</h3>
-                <p>Haz clic en cualquier parte del cuerpo para ver los procedimientos disponibles.</p>
-                <div className="zone-hints">
-                  <span style={{ color: categoryConfig['Facial']?.color }}>Cabeza → Facial</span>
-                  <span style={{ color: categoryConfig['Corporal']?.color }}>Cuerpo → Corporal</span>
-                  <span style={{ color: categoryConfig['Bariatría']?.color }}>Abdomen → Bariatría</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                    </div>
+                    <div className="procedure-checkbox">
+                      {selected ? (
+                        <motion.div
+                          className="checkbox-checked"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                        >
+                          <Check size={14} />
+                        </motion.div>
+                      ) : (
+                        <div className="checkbox-empty" />
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer con selección */}
       {selectedProcedures.length > 0 && (
@@ -301,10 +412,12 @@ const SurgerySelector = ({ selectedProcedures, onSelect }) => {
               <span
                 key={proc.id}
                 className="selected-tag"
-                style={{ borderColor: categoryConfig[proc.category]?.color }}
               >
                 {proc.icon} {proc.name}
-                <button onClick={() => onSelect(selectedProcedures.filter(p => p.id !== proc.id))}>
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(selectedProcedures.filter(p => p.id !== proc.id));
+                }}>
                   <X size={12} />
                 </button>
               </span>
